@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'registration',
     'teachers',
     'batches',
+    'onboarding',
 ]
 
 MIDDLEWARE = [

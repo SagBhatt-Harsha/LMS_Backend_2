@@ -12,7 +12,7 @@ class BatchSerializer(serializers.ModelSerializer):
 
     def get_enrolled_count(self, obj):
         # Will get from onboarding App.
-        return 0 #obj.trainees.count()
+        return obj.trainees.count()
 
     def validate(self, attrs):
         start_date = attrs.get('start_date', getattr(self.instance, 'start_date', None))
