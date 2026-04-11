@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'counselling',
     'registration',
     'teachers',
+    'batches',
 ]
 
 MIDDLEWARE = [
