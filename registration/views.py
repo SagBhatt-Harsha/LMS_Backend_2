@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from .models import Registration
 from .serializers import (RegistrationSerializer, RegistrationSearchSerializer)
 
-from .permissions import (IsAdminCounsellorTeacher, IsAdminCounsellor, IsAdminOnly)
+from .permissions import (IsAdminCounsellorTeacher, IsAdminOnly)
 
 # Create your views here.
 
@@ -20,10 +20,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
 
 
     def get_permissions(self):
-        if self.action == 'update':
-            return [IsAdminCounsellor()]
-
-        elif self.action == 'destroy':
+        if self.action == 'destroy':
             return [IsAdminOnly()]
 
         return [IsAdminCounsellorTeacher()]

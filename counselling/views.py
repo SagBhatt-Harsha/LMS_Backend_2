@@ -6,7 +6,7 @@ from .models import CounsellingLog
 
 from .serializers import (CounsellingSerializer, CounsellingStatusUpdateSerializer)
 
-from .permissions import (IsAdminCounsellorTeacher, IsAdminOrCounsellor, IsAdminOnly)
+from .permissions import (IsAdminCounsellorTeacher, IsAdminOnly)
 
 
 # Create your views here.
@@ -19,7 +19,6 @@ class CounsellingViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         # For GET, PUT, POST, PATCH, DELETE, CounsellingSerializer will be used through serializer_class. For the custom PATCH API endpoint, CounsellingStatusUpdateSerializer will be used.
         if self.action == 'status':
-
             return CounsellingStatusUpdateSerializer
 
         return CounsellingSerializer
@@ -27,13 +26,13 @@ class CounsellingViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            return [IsAdminOrCounsellor()]
+            return [IsAdminCounsellorTeacher()]
 
         elif self.action == 'destroy':
             return [IsAdminOnly()]
 
         elif self.action == 'status':
-            return [IsAdminOrCounsellor()]
+            return [IsAdminCounsellorTeacher()]
 
         return [IsAdminCounsellorTeacher()] 
 

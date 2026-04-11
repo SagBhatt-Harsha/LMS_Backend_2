@@ -36,7 +36,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         # String Representation.Shows in admin panel.
-        return f"{self.first_name} {self.last_name}:{self.email}"
+        return f"{self.first_name} {self.last_name}:{self.role}"
 
     @property
     def name(self):

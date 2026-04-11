@@ -8,15 +8,6 @@ class IsAdminCounsellorTeacher(BasePermission):
             request.user.role in ['admin', 'counsellor', 'teacher']
         )
 
-
-class IsAdminCounsellor(BasePermission):
-    def has_permission(self, request, view):
-        return (
-            request.user.is_authenticated and
-            request.user.role in ['admin', 'counsellor']
-        )
-
-
 class IsAdminOnly(BasePermission):
     def has_permission(self, request, view):
         return (
