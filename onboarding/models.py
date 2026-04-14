@@ -12,7 +12,8 @@ class Trainee(models.Model):
     # batch can be NULL because trainee may onboard before batch assignment.
 
     registration_code = models.CharField(max_length=50)
-
+    roll_number = models.CharField(max_length=50, blank=True, null=True)
+    
     name = models.CharField(max_length=100)
     gender = models.CharField(max_length=10)
     contact = models.CharField(max_length=10)

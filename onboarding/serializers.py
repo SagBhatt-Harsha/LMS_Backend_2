@@ -10,7 +10,7 @@ class BatchAssignSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Trainee
-        fields = ('id', 'batch')
+        fields = ('id', 'batch', 'roll_number')
         read_only_fields = ('id',)
 
     def validate_batch(self, value):
@@ -34,7 +34,7 @@ class BatchAssignResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Trainee
-        fields = ('id', 'name', 'registration_id', 'batch')
+        fields = ('id', 'name', 'registration_id', 'batch', 'roll_number')
 
     def get_batch(self, obj):
 
@@ -55,4 +55,4 @@ class TraineeSerializer(serializers.ModelSerializer):
         model = Trainee
         fields = '__all__'
         read_only_fields = ('id', 'registered_date', 'registration_code', 'name', 'gender', 'contact', 'slot', 'domain', 
-        'education', 'address', 'registered_by', 'batch_name')
+        'education', 'address', 'registered_by', 'batch_name', 'roll_number')
