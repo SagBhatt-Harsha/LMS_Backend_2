@@ -50,10 +50,12 @@ INSTALLED_APPS = [
     'teachers',
     'batches',
     'onboarding',
-    'dashboard'
+    'dashboard',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware', # For Render Deployment
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -148,3 +150,13 @@ REST_FRAMEWORK = { #Added Field
 }
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https') # For Render Deployment.
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "https://lms-frontend-phi-sable.vercel.app",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "https://lms-frontend-phi-sable.vercel.app",
+]
