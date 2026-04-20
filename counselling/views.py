@@ -6,7 +6,7 @@ from .models import CounsellingLog
 
 from .serializers import (CounsellingSerializer, CounsellingStatusUpdateSerializer)
 
-from .permissions import (IsAdminCounsellorTeacher, IsAdminOnly)
+from .permissions import (IsAdminCounsellorTeacher, IsAdminOnly, IsAdminCounsellor)
 
 
 # Create your views here.
@@ -29,7 +29,7 @@ class CounsellingViewSet(viewsets.ModelViewSet):
             return [IsAdminCounsellorTeacher()]
 
         elif self.action == 'destroy':
-            return [IsAdminOnly()]
+            return [IsAdminCounsellor()]
 
         elif self.action == 'status':
             return [IsAdminCounsellorTeacher()]
