@@ -8,7 +8,6 @@ from .serializers import (CounsellingSerializer, CounsellingStatusUpdateSerializ
 
 from .permissions import (IsAdminCounsellorTeacher, IsAdminOnly, IsAdminCounsellor)
 
-
 # Create your views here.
 
 

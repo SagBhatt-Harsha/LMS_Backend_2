@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     'teachers',
     'batches',
     'onboarding',
+    'trainer',
+    'placement',
     'dashboard',
     'corsheaders',
 ]

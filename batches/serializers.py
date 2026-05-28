@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Batch
+from onboarding.models import Trainee
 
 class BatchSerializer(serializers.ModelSerializer):
     teacher_name = serializers.CharField(source='teacher.name', read_only=True)
@@ -38,3 +39,43 @@ class BatchSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"teacher": "Teacher domain must match batch domain."})
 
         return attrs
+
+class TrainerBatchProgressSerializer(serializers.ModelSerializer):
+    """Serializer for GET /api/batches/trainer-progress/ API Endpoint"""
+    completion_percentage = serializers.ReadOnlyField()
+
+    total_students = serializers.SerializerMethodField()
+
+    batch_id = serializers.IntegerField(source='id', read_only=True)
+
+    batch_name = serializers.CharField(source='name', read_only=True)
+
+    class Meta:
+        model = Batch
+
+        fields = [
+            'batch_id',
+            'batch_name',
+            'completion_percentage',
+            'modules_completed',
+            'total_modules',
+            'total_students'
+        ]
+
+    def get_total_students(self, obj):
+        return obj.trainees.count()
+
+
+class BatchModulesCompletedSerializer(serializers.ModelSerializer):
+    """Serializer for PUT /api/batches/{id}/modules-completed/ API Endpoint"""
+    class Meta:
+        model = Batch
+        fields = ['modules_completed']
+
+    def validate_modules_completed(self, value):
+        batch = self.instance
+
+        if value > batch.total_modules:
+            raise serializers.ValidationError("modules_completed cannot exceed total_modules.")
+
+        return value

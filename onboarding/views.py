@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 from .models import Trainee
 from .serializers import TraineeSerializer, BatchAssignSerializer, BatchAssignResponseSerializer
 from .permissions import IsAdminCounsellorTeacher, IsAdminOnly
+from .utils import generate_roll_number
 
 # Create your views here.
 class TraineeViewSet(viewsets.ModelViewSet):
@@ -51,8 +52,9 @@ class TraineeViewSet(viewsets.ModelViewSet):
 
         if hasattr(registration, 'trainee'):
             raise ValidationError("This registration is already onboarded.")
-
-        serializer.save(
+        
+        # Later, Remove trainee= before uploading on Render. Delete utils.py in onboarding.
+        trainee = serializer.save(
             registration_code = registration.registration_id,
             name = registration.name,
             gender = registration.gender,
@@ -64,7 +66,11 @@ class TraineeViewSet(viewsets.ModelViewSet):
             registered_by = self.request.user
         )
 
-
+        # Auto-gen Roll Number. Remove Later.
+        if trainee.batch:
+            trainee.roll_number = generate_roll_number(trainee, trainee.batch)
+            trainee.save()
+    
     @action(detail=True, methods=['patch'], url_path='batch')
     def batch(self, request, pk=None):
         # Custom PATCH API endpoint.
@@ -73,6 +79,11 @@ class TraineeViewSet(viewsets.ModelViewSet):
 
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        
+        # Auto-gen Roll Number. Remove Later.
+        if trainee.batch:
+            trainee.roll_number = generate_roll_number(trainee, trainee.batch)
+            trainee.save()
 
         response_serializer = BatchAssignResponseSerializer(trainee)
         return Response(response_serializer.data)

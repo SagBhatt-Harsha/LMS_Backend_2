@@ -8,6 +8,7 @@ class Trainee(models.Model):
     registration = models.OneToOneField(Registration, on_delete=models.CASCADE, related_name='trainee')
 
     registered_date = models.DateField(auto_now_add=True)
+
     batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, null=True, blank=True, related_name='trainees')
     # batch can be NULL because trainee may onboard before batch assignment.
 
@@ -23,6 +24,13 @@ class Trainee(models.Model):
 
     education = models.CharField(max_length=100, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+
+    # TRAINING STATUS
+    training_completed = models.BooleanField(default=False)
+    ssc_certificate_received = models.BooleanField(default=False)
+
+    eligible_for_placement = models.BooleanField(default=False)
+    placed = models.BooleanField(default=False)
 
     registered_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='onboarded_trainees')
 

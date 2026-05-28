@@ -16,6 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path,include
+from trainer.views import TrainerDashboardView
+from placement.views import PlacementDashboardView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,4 +29,10 @@ urlpatterns = [
     path('api/batches/', include('batches.urls')),
     path('api/onboarding/', include('onboarding.urls')),
     path('api/dashboard/', include('dashboard.urls')),
+
+    path('api/trainer/', include('trainer.urls')),
+    path('api/dashboard/trainer/', TrainerDashboardView.as_view()),
+
+    path('api/dashboard/placement/', PlacementDashboardView.as_view()),
+    path('api/placement/', include('placement.urls')),
 ]

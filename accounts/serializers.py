@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'name', 'email', 'role', 'created_at']
-        read_only_fields = ['created_at']
+        read_only_fields = ['id','created_at']
 
     def get_name(self, obj):
         # Function Name : get_NameofDerivedField.

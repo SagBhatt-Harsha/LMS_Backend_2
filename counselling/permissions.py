@@ -2,7 +2,7 @@
 GET	    Admin/Counsellor/Teacher
 POST	Admin/Counsellor/Teacher
 PATCH	Admin/Counsellor/Teacher
-DELETE	Admin
+DELETE	Admin/Counsellor
 
 So we make 2 permission classes.
 '''

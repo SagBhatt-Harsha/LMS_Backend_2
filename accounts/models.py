@@ -11,6 +11,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('mobilizer', 'Mobilizer'),
         ('counsellor', 'Counsellor'),
         ('teacher', 'Teacher'),
+        ('trainer', 'Trainer'),
+        ('placement_officer', 'Placement Officer'),
         ('trainee', 'Trainee'),
     )
 

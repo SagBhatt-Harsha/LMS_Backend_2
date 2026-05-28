@@ -34,8 +34,22 @@ class Batch(models.Model):
 
     capacity = models.PositiveIntegerField()
 
+    # TRAINER ASSIGNMENT
     teacher = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True, related_name='batches')
     # on_delete=models.SET_NULL means if Teacher Deleted, batch remains intact.
 
+    # TRAINING PROGRESS
+    total_modules = models.PositiveIntegerField(default=0)
+
+    modules_completed = models.PositiveIntegerField(default=0)
+    
     def __str__(self):
         return f"{self.name}:-{self.domain}"
+    
+    @property
+    def completion_percentage(self):
+
+        if self.total_modules == 0:
+            return 0
+
+        return round( (self.modules_completed / self.total_modules) * 100, 2)
