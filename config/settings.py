@@ -24,10 +24,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-&-6&en+qfj#r6td)(!tc67@xv$p^e@ts+987plq^#)b7flaz^e'
+# SECRET_KEY = 'django-insecure-&-6&en+qfj#r6td)(!tc67@xv$p^e@ts+987plq^#)b7flaz^e'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False # Change to True when you run it in your machine.
 
 ALLOWED_HOSTS = ['*'] # For Render Deployment.
 
@@ -93,9 +94,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 # For Deployment with Render
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='postgresql://postgres:sag94361@localhost:5432/lms_backend_db'
+#     )
+# }
+
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://postgres:sag94361@localhost:5432/lms_backend_db'
+        default=os.environ.get('DATABASE_URL')
     )
 }
 
