@@ -29,10 +29,6 @@ urlpatterns = [
     path('api/batches/', include('batches.urls')),
     path('api/onboarding/', include('onboarding.urls')),
     path('api/dashboard/', include('dashboard.urls')),
-
     path('api/trainer/', include('trainer.urls')),
-    path('api/dashboard/trainer/', TrainerDashboardView.as_view()),
-
-    path('api/dashboard/placement/', PlacementDashboardView.as_view()),
     path('api/placement/', include('placement.urls')),
 ]

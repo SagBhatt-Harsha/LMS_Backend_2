@@ -1,12 +1,3 @@
-'''
-GET	    Admin/Counsellor/Teacher
-POST	Admin/Counsellor/Teacher
-PATCH	Admin/Counsellor/Teacher
-DELETE	Admin/Counsellor
-
-So we make 2 permission classes.
-'''
-
 from rest_framework.permissions import BasePermission
 
 class IsAdminCounsellorTeacher(BasePermission):

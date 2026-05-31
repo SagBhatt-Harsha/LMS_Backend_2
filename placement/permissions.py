@@ -11,3 +11,7 @@ class IsAdminOnly(BasePermission):
 class IsPlacementOfficerOnly(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == 'placement_officer'
+
+class IsAdminPlacement(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role in ['admin', 'placement_officer']

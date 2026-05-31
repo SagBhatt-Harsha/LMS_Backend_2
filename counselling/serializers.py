@@ -6,6 +6,9 @@ class CounsellingSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='mobilization_record.name', read_only=True)
     mobile = serializers.CharField(source='mobilization_record.mobile', read_only=True)
     gender = serializers.CharField(source='mobilization_record.gender', read_only=True)
+    
+    ward_no = serializers.CharField(source='mobilization_record.ward_no', read_only=True)
+    caste = serializers.CharField(source='mobilization_record.caste', read_only=True)
 
     class Meta:
         model = CounsellingLog
@@ -19,6 +22,9 @@ class CounsellingSerializer(serializers.ModelSerializer):
             'name',
             'mobile',
             'gender',
+            'ward_no',
+            'caste',
+            'enrolled_flag'
         )
 
     def validate(self, attrs):

@@ -1,12 +1,34 @@
 from rest_framework import serializers
+from .models import Module, Assessment
 
-from .models import Assessment
+class ModuleSerializer(serializers.ModelSerializer):
+    batch_name = serializers.CharField(source='batch.name', read_only=True)
+    teacher_name = serializers.CharField(source='batch.teacher.name', read_only=True)
+
+    class Meta:
+        model = Module
+
+        fields = [
+            'id',
+            'batch',
+            'teacher_name',
+            'batch_name',
+            'name',
+            'theory_hrs',
+            'practical_hrs',
+            'ssc_code',
+            'status',
+            'assessment_date'
+        ]
+
+        read_only_fields = (
+            'id',
+            'batch_name',
+            'teacher_name'
+        )
 
 
 class AssessmentSerializer(serializers.ModelSerializer):
-
-    # student_id = serializers.IntegerField(source='trainee.id',read_only=True)
-
     student_name = serializers.CharField(source='trainee.name', read_only=True)
     batch_name = serializers.CharField(source='batch.name', read_only=True)
     trainer_name = serializers.CharField(source='teacher.name', read_only=True)
@@ -22,7 +44,12 @@ class AssessmentSerializer(serializers.ModelSerializer):
             'batch_name',
             'trainer_name',
             'assessment_name',
-            'score',
+            'attendance_score',
+            'class_performance_score',
+            'assignments_score',
+            'written_exam_score',
+            'viva_score',
+            'total_score',
             'grade',
             'assessment_date',
             'remarks',
@@ -31,13 +58,15 @@ class AssessmentSerializer(serializers.ModelSerializer):
 
         read_only_fields = (
             'id',
-            'created_at',
             'student_name',
             'batch_name',
-            'trainer_name'
+            'trainer_name',
+            'total_score',
+            'created_at'
         )
 
-    # DOMAIN VALIDATION
+
+    # VALIDATION
     def validate(self, attrs):
         trainee = attrs.get('trainee', getattr(self.instance, 'trainee', None))
         batch = attrs.get('batch', getattr(self.instance, 'batch', None))

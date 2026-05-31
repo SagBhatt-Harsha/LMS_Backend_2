@@ -1,15 +1,17 @@
 from django.db.models import Count
+from django.db import transaction
 
 from rest_framework import viewsets
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 
 from onboarding.models import Trainee
 from .models import Interview, Retention
 
-from .serializers import (PlacementCandidateSerializer, InterviewSerializer, RetentionSerializer)
-from .permissions import (IsPlacementOfficerOnly, IsAdminCounsellorPlacement, IsAdminOnly)
+from .serializers import (PlacementCandidateSerializer, InterviewSerializer, RetentionSerializer, RetentionMonthSerializer, RetentionRecordSerializer)
+from .permissions import (IsPlacementOfficerOnly, IsAdminCounsellorPlacement, IsAdminOnly, IsAdminPlacement)
 
 # Create your views here.
 class PlacementDashboardView(APIView):
@@ -21,7 +23,9 @@ class PlacementDashboardView(APIView):
         appeared_for_interview = Interview.objects.filter(status='Appeared').values('trainee').distinct().count()
         students_placed = Interview.objects.filter(status='Selected').values('trainee').distinct().count()
 
-        retained_6_months = Retention.objects.filter(month_number=6,retention_status='Retained').values('trainee').distinct().count()
+        retained_6_months = Retention.objects.filter(month_number=6,retention_status__in=[
+            'Retained', 'Changed']).values('trainee').distinct().count()
+
         completed_training = Trainee.objects.filter(training_completed=True).count()
 
         # RATIOS
@@ -67,7 +71,8 @@ class PlacementDashboardView(APIView):
             placed = Interview.objects.filter(trainee__domain=domain, status='Selected').values('trainee').distinct().count()
 
             retained = Retention.objects.filter(
-                trainee__domain=domain, month_number=6, retention_status='Retained').values('trainee').distinct().count()
+                trainee__domain=domain, month_number=6, retention_status__in=[
+                    'Retained', 'Changed']).values('trainee').distinct().count()
 
             percentage = 0
             if placed > 0:
@@ -139,18 +144,105 @@ class PlacementCandidateListView(ListAPIView):
 
 
 class InterviewViewSet(viewsets.ModelViewSet):
-
     queryset = Interview.objects.all()
-
     serializer_class = InterviewSerializer
-
     permission_classes = [IsPlacementOfficerOnly]
+
+    @action(detail=False, methods=['post'], url_path='bulk')
+    def bulk_create(self, request):
+        # POST /api/placement/interviews/bulk/
+        trainee_id = request.data.get('trainee')
+        interviews = request.data.get('interviews', [])
+
+        if len(interviews) > 3:
+            return Response(
+                {
+                    "error":"Maximum 3 interviews allowed."
+                },
+                status=400
+            )
+
+        try:
+            trainee = Trainee.objects.get(id=trainee_id)
+
+        except Trainee.DoesNotExist:
+            return Response(
+                {
+                    "error":"Invalid trainee."
+                },
+                status=404
+            )
+
+        created = []
+        with transaction.atomic():
+            for item in interviews:
+                interview = Interview.objects.create(
+                    trainee=trainee, company_name=item['company_name'], interview_date=item['interview_date'], status=item['status'],
+                    designation_offered=item.get('designation_offered'), salary_ctc=item.get('salary_ctc'), 
+                    current_household_income=item.get('current_household_income')
+                )
+
+                created.append(InterviewSerializer(interview).data)
+
+        return Response(created)
 
 
 class RetentionViewSet(viewsets.ModelViewSet):
 
     queryset = Retention.objects.all()
-
     serializer_class = RetentionSerializer
-
     permission_classes = [IsPlacementOfficerOnly]
+
+    @action(detail=False, methods=['post'], url_path='bulk-update')
+    def bulk_update(self, request):
+        # POST /api/placement/retention/bulk-update/
+        trainee_id = request.data.get('trainee')
+        months = request.data.get('months', [])
+
+        try:
+            trainee = Trainee.objects.get(id=trainee_id)
+
+        except Trainee.DoesNotExist:
+            return Response(
+                {
+                    "error":
+                    "Invalid trainee."
+                },
+                status=404
+            )
+
+        selected = Interview.objects.filter(trainee=trainee, status='Selected').exists()
+
+        if not selected:
+            return Response(
+                {
+                    "error":
+                    "Student not selected in Interview."
+                },
+                status=400
+            )
+
+        records = []
+
+        with transaction.atomic():
+            for item in months:
+                retention, _ = (Retention.objects.update_or_create(
+                    trainee=trainee, month_number=item['month_number'],
+                    defaults={
+                            'retention_status':item['retention_status'],
+                            'remarks':item.get('remarks', '')
+                             }
+                    )
+                )
+
+                records.append(RetentionSerializer(retention).data)
+
+        return Response(records)
+
+class RetentionRecordListView(ListAPIView):
+    # GET /api/placement/retention-records/
+    serializer_class = RetentionRecordSerializer
+    permission_classes = [IsAdminPlacement]
+
+    def get_queryset(self):
+        return Trainee.objects.filter(interviews__status='Selected').distinct()
