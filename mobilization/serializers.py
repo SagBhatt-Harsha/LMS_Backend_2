@@ -12,6 +12,7 @@ class QualificationSerializer(serializers.ModelSerializer):
 class MobilizationSerializer(serializers.ModelSerializer):
 
     qualifications = QualificationSerializer(many=True)
+    counselling_status = serializers.SerializerMethodField()
 
     class Meta:
         model = MobilizationRecord
@@ -24,7 +25,13 @@ class MobilizationSerializer(serializers.ModelSerializer):
             'created_by',
             'counselling_converted',
             'added_by_name',
+            'counselling_status',
         )
+
+    def get_counselling_status(self, obj):
+        from counselling.models import CounsellingLog
+        c_log = CounsellingLog.objects.filter(mobilization_record=obj).first()
+        return c_log.status if c_log else "Pending"
 
     # Need to make Custom create() & update() as Qualifications is Nested within MobilizationRecords. Default create() & update() can't handle that.
     def create(self, validated_data):

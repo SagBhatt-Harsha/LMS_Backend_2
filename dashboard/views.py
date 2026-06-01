@@ -91,13 +91,43 @@ class DashboardMetricsView(APIView):
 
     def get_mobilizer_metrics(self, user):
         mobilizations = MobilizationRecord.objects.filter(created_by=user)
+        total_mobilized = mobilizations.count()
+        
+        female_students = mobilizations.filter(gender='Female').count()
+        sc_st_students = mobilizations.filter(caste__in=['SC', 'ST']).count()
+        wards_covered = mobilizations.values('ward_no').distinct().count()
+        
+        counselled_count = mobilizations.filter(counselling_converted=True).count()
+        conversion_rate = round((counselled_count / total_mobilized * 100), 2) if total_mobilized > 0 else 0
+
+        recent_records = mobilizations.order_by('-date', '-id')[:6]
+        recent_list = []
+        for r in recent_records:
+            c_log = CounsellingLog.objects.filter(mobilization_record=r).first()
+            recent_list.append({
+                "id": r.id,
+                "name": r.name,
+                "mobile": r.mobile,
+                "gender": r.gender,
+                "caste": r.caste,
+                "ward_no": r.ward_no,
+                "date": r.date,
+                "state": r.state,
+                "counselling_status": c_log.status if c_log else "Pending Counselling",
+                "domain_preference": c_log.domain if c_log and c_log.domain else "—"
+            })
 
         return {
-            "total_mobilized": mobilizations.count(),
+            "total_mobilized": total_mobilized,
+            "female_students": female_students,
+            "sc_st_students": sc_st_students,
+            "wards_covered": wards_covered,
+            "counselled_count": counselled_count,
+            "conversion_rate": conversion_rate,
             "gender_distribution": dict(mobilizations.values_list('gender').annotate(count=Count('id'))),
             "caste_distribution": dict(mobilizations.values_list('caste').annotate(count=Count('id'))),
             "top_states": list(mobilizations.values('state').annotate(count=Count('id')).order_by('-count')[:5]),
-            "recent_mobilizations": list(mobilizations.values('id', 'name', 'mobile', 'state', 'date').order_by('-date')[:5])
+            "recent_mobilizations": recent_list
         }
 
 

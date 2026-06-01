@@ -19,7 +19,7 @@ class MobilizationViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         # Dynamic permission by Kind of Authenticated User.
         if self.action == 'analytics':
-            return [IsAdminOnly()]
+            return [IsAdminOrMobilizer()]
 
         elif self.action == 'create': 
             # POST
@@ -56,7 +56,9 @@ class MobilizationViewSet(viewsets.ModelViewSet):
         '''Above two lines of code are used to set the counselling_converted flag of existing Mob.Students to True if false for any of them.'''
 
         queryset = MobilizationRecord.objects.all()
-
+        if hasattr(self.request.user, 'role') and self.request.user.role == 'mobilizer':
+            queryset = queryset.filter(created_by=self.request.user)
+            
         state = self.request.query_params.get('state')
         # self.request.query_params.get('state') Extracts the state(?state=) from GET Request.
 
@@ -135,14 +137,29 @@ class MobilizationViewSet(viewsets.ModelViewSet):
         The Entire Expression returns a Queryset of Dictionaries where item points to each dictionary.
         '''
 
-        ward_breakdown = [
-            {
+        from django.db.models import Count, Q, FloatField
+        from django.db.models.functions import Cast
+        
+        ward_data = queryset.values('ward_no').annotate(
+            total=Count('id'),
+            female=Count('id', filter=Q(gender='Female')),
+            male=Count('id', filter=Q(gender='Male')),
+            sc_st=Count('id', filter=Q(caste__in=['SC', 'ST'])),
+            counselled=Count('id', filter=Q(counselling_converted=True))
+        ).order_by('-total')
+
+        ward_breakdown = []
+        for item in ward_data:
+            conv_pct = round((item['counselled'] * 100.0) / item['total']) if item['total'] > 0 else 0
+            ward_breakdown.append({
                 "ward": item["ward_no"],
-                "count": item["count"]
-            }
-            for item in (queryset.values("ward_no").annotate(count=Count("id")).order_by("-count"))
-            
-        ]
+                "count": item["total"],
+                "female": item["female"],
+                "male": item["male"],
+                "sc_st": item["sc_st"],
+                "counselled": item["counselled"],
+                "conversion": conv_pct
+            })
 
         mobiliser_breakdown = [
             {
