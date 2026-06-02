@@ -56,7 +56,15 @@ class Assessment(models.Model):
 
     assessment_date = models.DateField()
 
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Going On', 'Going On'),
+        ('Completed', 'Completed'),
+    )
+
     remarks = models.TextField(blank=True, null=True)
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
     created_at = models.DateTimeField(auto_now_add=True)
 

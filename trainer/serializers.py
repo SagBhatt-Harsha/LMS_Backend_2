@@ -70,6 +70,7 @@ class AssessmentSerializer(serializers.ModelSerializer):
             'grade',
             'assessment_date',
             'remarks',
+            'status',
             'created_at'
         ]
 
