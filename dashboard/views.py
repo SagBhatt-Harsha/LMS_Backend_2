@@ -133,9 +133,42 @@ class DashboardMetricsView(APIView):
 
     def get_counsellor_metrics(self, user):
         counselling = CounsellingLog.objects.filter(counselled_by=user)
+        total_counselled = counselling.count()
+
+        female_students = counselling.filter(mobilization_record__gender='Female').count()
+        sc_st_students = counselling.filter(mobilization_record__caste__in=['SC', 'ST']).count()
+        wards_covered = counselling.values('mobilization_record__ward_no').distinct().count()
+
+        enrolled_count = counselling.filter(enrolled_flag=True).count()
+        conversion_rate = round((enrolled_count / total_counselled * 100), 1) if total_counselled > 0 else 0
+
+        domain_distribution = dict(counselling.filter(status='Interested').values_list('domain').annotate(count=Count('id')))
+        slot_distribution = dict(counselling.filter(status='Interested').values_list('slot').annotate(count=Count('id')))
+
+        recent_records = counselling.order_by('-date', '-id')[:6]
+        recent_list = []
+        for r in recent_records:
+            recent_list.append({
+                "id": r.id,
+                "name": r.name,
+                "mobile": r.mobile,
+                "gender": r.mobilization_record.gender if r.mobilization_record else "—",
+                "date": r.date,
+                "slot": r.slot,
+                "domain_preference": r.domain,
+                "status": r.status,
+                "enrolled_flag": r.enrolled_flag
+            })
 
         return {
-            "total_counselled": counselling.count(),
+            "total_counselled": total_counselled,
+            "female_students": female_students,
+            "sc_st_students": sc_st_students,
+            "wards_covered": wards_covered,
+            "enrolled_count": enrolled_count,
+            "conversion_rate": conversion_rate,
             "counselling_status_breakdown": dict(counselling.values_list('status').annotate(count=Count('id'))),
-            "domain_distribution": dict(counselling.filter(status='Interested').values_list('domain').annotate(count=Count('id')))
+            "domain_distribution": domain_distribution,
+            "slot_distribution": slot_distribution,
+            "recent_counselling": recent_list
         }

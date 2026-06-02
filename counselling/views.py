@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, Q
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -28,7 +28,7 @@ class CounsellingViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'analytics':
-            return [IsAdminOnly()]
+            return [IsAdminCounsellorTeacher()]
         
         if self.action == 'create':
             return [IsAdminCounsellorTeacher()]
@@ -104,7 +104,10 @@ class CounsellingViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def analytics(self, request):
         # GET /api/counselling/analytics
-        queryset = CounsellingLog.objects.all()
+        base_queryset = CounsellingLog.objects.all()
+        queryset = base_queryset
+        if request.user.role == 'counsellor':
+            queryset = queryset.filter(counselled_by=request.user)
 
         total_counselled = queryset.count()
 
@@ -125,25 +128,43 @@ class CounsellingViewSet(viewsets.ModelViewSet):
         ward_breakdown = [
             {
                 "ward":item["mobilization_record__ward_no"],
-                "count":item["count"]
+                "count":item["count"],
+                "enrolled":item["enrolled"]
             }
-            for item in (queryset.values("mobilization_record__ward_no").annotate(count=Count("id")).order_by("-count"))
+            for item in (queryset.values("mobilization_record__ward_no").annotate(count=Count("id"), enrolled=Count("id", filter=Q(enrolled_flag=True))).order_by("-count"))
         ]
 
         domain_preference = [
             {
                 "domain":item["domain"],
-                "count":item["count"]
+                "count":item["count"],
+                "enrolled":item["enrolled"]
             }
-            for item in (queryset.exclude(domain__isnull=True).values("domain").annotate(count=Count("id")).order_by("-count"))
+            for item in (queryset.exclude(domain__isnull=True).values("domain").annotate(count=Count("id"), enrolled=Count("id", filter=Q(enrolled_flag=True))).order_by("-count"))
         ]
 
         counsellor_sessions = [
             {
                 "counsellor_name":item["counselled_by_name"],
-                "count":item["count"]
+                "count":item["count"],
+                "enrolled":item["enrolled"],
+                "female":item["female"],
+                "sc_st":item["sc_st"],
+                "wards_covered":item["wards_covered"],
+                "interested":item["interested"],
+                "not_interested":item["not_interested"],
+                "decision_pending":item["decision_pending"],
             }
-            for item in (queryset.values("counselled_by_name").annotate(count=Count("id")).order_by("-count"))
+            for item in (base_queryset.values("counselled_by_name").annotate(
+                count=Count("id"),
+                enrolled=Count("id", filter=Q(enrolled_flag=True)),
+                female=Count("id", filter=Q(mobilization_record__gender='Female')),
+                sc_st=Count("id", filter=Q(mobilization_record__caste__in=['SC', 'ST'])),
+                wards_covered=Count("mobilization_record__ward_no", distinct=True),
+                interested=Count("id", filter=Q(status='Interested')),
+                not_interested=Count("id", filter=Q(status='Not Interested')),
+                decision_pending=Count("id", filter=Q(status='Decision Pending')),
+            ).order_by("-count"))
         ]
 
         slot_distribution = [

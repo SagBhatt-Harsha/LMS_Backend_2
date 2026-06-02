@@ -21,7 +21,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
 
 
     def get_permissions(self):
-        if self.action in ['destroy', 'analytics']:
+        if self.action == 'destroy':
             return [IsAdminOnly()]
 
         return [IsAdminCounsellorTeacher()]
@@ -31,6 +31,9 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         Filtering by:domain,counsellor,ward,slot,center
         '''
         queryset = Registration.objects.all()
+        
+        if self.request.user.role == 'counsellor':
+            queryset = queryset.filter(registered_by=self.request.user)
 
         domain = self.request.query_params.get('domain')
         counsellor = self.request.query_params.get('counsellor')
@@ -124,7 +127,16 @@ class RegistrationViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def analytics(self, request):
         # Analytics API: GET /api/registration/analytics
-        queryset = Registration.objects.all()
+        base_queryset = Registration.objects.all()
+        queryset = base_queryset
+
+        if request.user.role == 'counsellor':
+            queryset = queryset.filter(registered_by=request.user)
+
+        total_registered = queryset.count()
+        female_enrolled = queryset.filter(gender='Female').count()
+        morning_slot = queryset.filter(slot='Morning').count()
+        evening_slot = queryset.filter(slot='Evening').count()
 
         domain_registration = [
             {
@@ -139,7 +151,7 @@ class RegistrationViewSet(viewsets.ModelViewSet):
                 "counsellor_name": item["counselled_by_name"],
                 "count": item["count"]
             }
-            for item in (queryset.values("counselled_by_name").annotate(count=Count("id")).order_by("-count"))
+            for item in (base_queryset.values("counselled_by_name").annotate(count=Count("id")).order_by("-count"))
         ]
 
         ward_registration = [
@@ -159,7 +171,12 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         ]
 
         return Response({
-
+            "kpis": {
+                "total_registered": total_registered,
+                "female_enrolled": female_enrolled,
+                "morning_slot": morning_slot,
+                "evening_slot": evening_slot,
+            },
             "charts": {
                 "domain_registration":domain_registration,
                 "counsellor_registration":counsellor_registration,
