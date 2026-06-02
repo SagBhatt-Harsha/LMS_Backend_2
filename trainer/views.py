@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 
-from .models import Assessment, Module
-from .serializers import AssessmentSerializer, ModuleSerializer
+from .models import Assessment, Module, InternalAssessment, PerformanceCriteria
+from .serializers import AssessmentSerializer, ModuleSerializer, InternalAssessmentSerializer, PerformanceCriteriaSerializer
 
 from onboarding.models import Trainee
 from batches.models import Batch
@@ -83,6 +83,109 @@ class ModuleViewSet(viewsets.ModelViewSet):
 
         instance.delete()
 
+class InternalAssessmentViewSet(viewsets.ModelViewSet):
+    queryset = InternalAssessment.objects.all()
+    serializer_class = InternalAssessmentSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsTeacherOnly()]
+        return [IsAdminCounsellorTeacher()]
+
+    def get_queryset(self):
+        queryset = InternalAssessment.objects.all()
+        batch_id = self.request.query_params.get('batch_id')
+        if batch_id:
+            queryset = queryset.filter(batch=batch_id)
+        
+        if getattr(self.request.user, 'role', None) == 'teacher':
+            try:
+                teacher = Teacher.objects.get(email=self.request.user.email)
+                queryset = queryset.filter(batch__teacher=teacher)
+            except Teacher.DoesNotExist:
+                queryset = queryset.none()
+        return queryset
+
+    def perform_create(self, serializer):
+        batch = serializer.validated_data['batch']
+        try:
+            teacher = Teacher.objects.get(email=self.request.user.email)
+        except Teacher.DoesNotExist:
+            raise ValidationError("No teacher profile linked.")
+        if batch.teacher != teacher:
+            raise ValidationError("You are not assigned to this batch.")
+        serializer.save()
+
+    def perform_update(self, serializer):
+        try:
+            teacher = Teacher.objects.get(email=self.request.user.email)
+        except Teacher.DoesNotExist:
+            raise ValidationError("No teacher profile linked.")
+        assessment = self.get_object()
+        if assessment.batch.teacher != teacher:
+            raise ValidationError("You are not assigned to this batch.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        try:
+            teacher = Teacher.objects.get(email=self.request.user.email)
+        except Teacher.DoesNotExist:
+            raise ValidationError("No teacher profile linked.")
+        if instance.batch.teacher != teacher:
+            raise ValidationError("You are not assigned to this batch.")
+        instance.delete()
+
+class PerformanceCriteriaViewSet(viewsets.ModelViewSet):
+    queryset = PerformanceCriteria.objects.all()
+    serializer_class = PerformanceCriteriaSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsTeacherOnly()]
+        return [IsAdminCounsellorTeacher()]
+
+    def get_queryset(self):
+        queryset = PerformanceCriteria.objects.all()
+        batch_id = self.request.query_params.get('batch_id')
+        if batch_id:
+            queryset = queryset.filter(batch=batch_id)
+        
+        if getattr(self.request.user, 'role', None) == 'teacher':
+            try:
+                teacher = Teacher.objects.get(email=self.request.user.email)
+                queryset = queryset.filter(batch__teacher=teacher)
+            except Teacher.DoesNotExist:
+                queryset = queryset.none()
+        return queryset
+
+    def perform_create(self, serializer):
+        batch = serializer.validated_data['batch']
+        try:
+            teacher = Teacher.objects.get(email=self.request.user.email)
+        except Teacher.DoesNotExist:
+            raise ValidationError("No teacher profile linked.")
+        if batch.teacher != teacher:
+            raise ValidationError("You are not assigned to this batch.")
+        serializer.save()
+
+    def perform_update(self, serializer):
+        try:
+            teacher = Teacher.objects.get(email=self.request.user.email)
+        except Teacher.DoesNotExist:
+            raise ValidationError("No teacher profile linked.")
+        criteria = self.get_object()
+        if criteria.batch.teacher != teacher:
+            raise ValidationError("You are not assigned to this batch.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        try:
+            teacher = Teacher.objects.get(email=self.request.user.email)
+        except Teacher.DoesNotExist:
+            raise ValidationError("No teacher profile linked.")
+        if instance.batch.teacher != teacher:
+            raise ValidationError("You are not assigned to this batch.")
+        instance.delete()
 
 class AssessmentViewSet(viewsets.ModelViewSet):
     queryset = Assessment.objects.all()

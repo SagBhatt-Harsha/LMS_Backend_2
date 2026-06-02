@@ -16,3 +16,5 @@ db.sqlite3
 
 # OS files
 .DS_Store
+
+package-lock.json

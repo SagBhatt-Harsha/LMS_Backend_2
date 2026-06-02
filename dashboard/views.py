@@ -9,6 +9,8 @@ from counselling.models import CounsellingLog
 from registration.models import Registration
 from onboarding.models import Trainee
 from batches.models import Batch
+from teachers.models import Teacher
+from trainer.models import Assessment
 
 # Create your views here.
 class DashboardMetricsView(APIView):
@@ -25,6 +27,9 @@ class DashboardMetricsView(APIView):
 
         elif user.role == 'counsellor':
             return Response(self.get_counsellor_metrics(user))
+
+        elif user.role == 'trainer':
+            return Response(self.get_trainer_metrics(user))
 
         return Response({})
 
@@ -171,4 +176,68 @@ class DashboardMetricsView(APIView):
             "domain_distribution": domain_distribution,
             "slot_distribution": slot_distribution,
             "recent_counselling": recent_list
+        }
+
+    def get_trainer_metrics(self, user):
+        try:
+            teacher = Teacher.objects.get(email=user.email)
+        except Teacher.DoesNotExist:
+            return {
+                "teacher_name": user.name,
+                "teacher_domain": "No Domain",
+                "enrolled_count": 0,
+                "female_count": 0,
+                "sc_st_count": 0,
+                "completed_count": 0,
+                "ssc_received_count": 0,
+                "completion_ratio": 0,
+                "batch_progress": [],
+                "score_distribution": {}
+            }
+
+        batches = Batch.objects.filter(teacher=teacher)
+        
+        # Calculate KPI counts based on Trainees assigned to these batches
+        trainees = Trainee.objects.filter(batch__in=batches)
+        
+        enrolled_count = trainees.count()
+        female_count = trainees.filter(gender='Female').count()
+        
+        # SC/ST is usually defined in MobilizationRecord (caste)
+        sc_st_count = trainees.filter(registration__mobilization_record__caste__in=['SC', 'ST']).count()
+        
+        completed_count = trainees.filter(training_completed=True).count()
+        ssc_received_count = trainees.filter(ssc_certificate_received=True).count()
+        
+        completion_ratio = round((completed_count / enrolled_count * 100), 1) if enrolled_count > 0 else 0
+        
+        batch_progress = []
+        for b in batches:
+            batch_progress.append({
+                "id": b.id,
+                "name": b.name,
+                "slot": b.slot,
+                "domain": b.domain,
+                "modules_completed": b.modules_completed,
+                "total_modules": b.total_modules,
+                "enrolled": b.trainees.count()
+            })
+            
+        score_distribution = dict(
+            Assessment.objects.filter(batch__teacher=teacher)
+            .values_list('grade')
+            .annotate(count=Count('id'))
+        )
+        
+        return {
+            "teacher_name": user.name,
+            "teacher_domain": teacher.domain,
+            "enrolled_count": enrolled_count,
+            "female_count": female_count,
+            "sc_st_count": sc_st_count,
+            "completed_count": completed_count,
+            "ssc_received_count": ssc_received_count,
+            "completion_ratio": completion_ratio,
+            "batch_progress": batch_progress,
+            "score_distribution": score_distribution
         }

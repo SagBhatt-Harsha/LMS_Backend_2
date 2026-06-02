@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Module, Assessment
+from .models import Module, Assessment, InternalAssessment, PerformanceCriteria
 
 class ModuleSerializer(serializers.ModelSerializer):
     batch_name = serializers.CharField(source='batch.name', read_only=True)
@@ -17,6 +17,8 @@ class ModuleSerializer(serializers.ModelSerializer):
             'theory_hrs',
             'practical_hrs',
             'ssc_code',
+            'attendance_score',
+            'remarks',
             'status',
             'assessment_date'
         ]
@@ -27,6 +29,21 @@ class ModuleSerializer(serializers.ModelSerializer):
             'teacher_name'
         )
 
+class InternalAssessmentSerializer(serializers.ModelSerializer):
+    batch_name = serializers.CharField(source='batch.name', read_only=True)
+
+    class Meta:
+        model = InternalAssessment
+        fields = '__all__'
+        read_only_fields = ('id', 'batch_name')
+
+class PerformanceCriteriaSerializer(serializers.ModelSerializer):
+    batch_name = serializers.CharField(source='batch.name', read_only=True)
+
+    class Meta:
+        model = PerformanceCriteria
+        fields = '__all__'
+        read_only_fields = ('id', 'batch_name')
 
 class AssessmentSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='trainee.name', read_only=True)

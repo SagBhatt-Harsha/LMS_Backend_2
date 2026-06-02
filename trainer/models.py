@@ -18,8 +18,11 @@ class Module(models.Model):
     theory_hrs = models.PositiveIntegerField()
     practical_hrs = models.PositiveIntegerField()
 
-    ssc_code = models.CharField(max_length=100)
+    ssc_code = models.CharField(max_length=100, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    
+    attendance_score = models.CharField(max_length=50, blank=True, null=True)
+    remarks = models.TextField(blank=True, null=True)
 
     assessment_date = models.DateField(blank=True, null=True)
 
@@ -67,3 +70,45 @@ class Assessment(models.Model):
 
     def __str__(self):
         return (f"{self.trainee.name} - {self.assessment_name}")
+
+class InternalAssessment(models.Model):
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Going On', 'Going On'),
+        ('Completed', 'Completed'),
+    )
+
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE, related_name='internal_assessments')
+    name = models.CharField(max_length=200)
+    theory_marks = models.PositiveIntegerField(default=0)
+    practical_marks = models.PositiveIntegerField(default=0)
+    project_marks = models.PositiveIntegerField(default=0)
+    viva_marks = models.PositiveIntegerField(default=0)
+    weightage_percent = models.PositiveIntegerField(default=0)
+    
+    assessment_date = models.DateField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+
+    def __str__(self):
+        return f"{self.batch.name} - {self.name}"
+
+class PerformanceCriteria(models.Model):
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Going On', 'Going On'),
+        ('Completed', 'Completed'),
+    )
+
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE, related_name='performance_criteria')
+    criteria_id = models.CharField(max_length=50)
+    description = models.TextField()
+    
+    total_marks = models.FloatField(default=0)
+    theory_marks = models.FloatField(default=0)
+    skills_marks = models.FloatField(default=0)
+
+    assessment_date = models.DateField(blank=True, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+
+    def __str__(self):
+        return f"{self.batch.name} - {self.criteria_id}"
