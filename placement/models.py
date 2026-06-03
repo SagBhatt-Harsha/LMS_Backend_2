@@ -23,6 +23,7 @@ class Interview(models.Model):
 
     designation_offered = models.CharField(max_length=200, blank=True, null=True)
     salary_ctc = models.CharField(max_length=100, blank=True, null=True)
+    place_of_posting = models.CharField(max_length=200, blank=True, null=True)
     current_household_income = models.CharField(max_length=100, blank=True, null=True)
 
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)

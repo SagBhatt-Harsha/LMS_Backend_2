@@ -67,6 +67,7 @@ class InterviewSerializer(serializers.ModelSerializer):
 
             'designation_offered',
             'salary_ctc',
+            'place_of_posting',
             'current_household_income'
         ]
 
@@ -139,6 +140,10 @@ class RetentionRecordSerializer(serializers.ModelSerializer):
     company_name = serializers.SerializerMethodField()
     designation_offered = serializers.SerializerMethodField()
     salary_ctc = serializers.SerializerMethodField()
+    place_of_posting = serializers.SerializerMethodField()
+    placement_date = serializers.SerializerMethodField()
+    batch = serializers.CharField(source='batch.name', read_only=True)
+    assessment_score = serializers.SerializerMethodField()
 
     retention_records = serializers.SerializerMethodField()
 
@@ -149,10 +154,14 @@ class RetentionRecordSerializer(serializers.ModelSerializer):
             'student_name',
             'registration_id',
             'domain',
+            'batch',
+            'assessment_score',
 
             'company_name',
             'designation_offered',
+            'place_of_posting',
             'salary_ctc',
+            'placement_date',
             'retention_records'
         ]
 
@@ -170,6 +179,18 @@ class RetentionRecordSerializer(serializers.ModelSerializer):
     def get_salary_ctc(self, obj):
         interview = self.get_selected_interview(obj)
         return (interview.salary_ctc if interview else None)
+
+    def get_place_of_posting(self, obj):
+        interview = self.get_selected_interview(obj)
+        return (interview.place_of_posting if interview else None)
+
+    def get_placement_date(self, obj):
+        interview = self.get_selected_interview(obj)
+        return (interview.interview_date if interview else None)
+
+    def get_assessment_score(self, obj):
+        avg_score = (Assessment.objects.filter( trainee=obj ).aggregate( avg=Avg('total_score') )['avg'])
+        return round(avg_score, 2) if avg_score else 0
 
     def get_retention_records(self, obj):
         records = obj.retentions.order_by('month_number')

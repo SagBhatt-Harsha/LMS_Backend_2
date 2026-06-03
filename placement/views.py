@@ -146,7 +146,7 @@ class PlacementCandidateListView(ListAPIView):
 class InterviewViewSet(viewsets.ModelViewSet):
     queryset = Interview.objects.all()
     serializer_class = InterviewSerializer
-    permission_classes = [IsPlacementOfficerOnly]
+    permission_classes = [IsAdminPlacement]
 
     @action(detail=False, methods=['post'], url_path='bulk')
     def bulk_create(self, request):
@@ -191,7 +191,7 @@ class RetentionViewSet(viewsets.ModelViewSet):
 
     queryset = Retention.objects.all()
     serializer_class = RetentionSerializer
-    permission_classes = [IsPlacementOfficerOnly]
+    permission_classes = [IsAdminPlacement]
 
     @action(detail=False, methods=['post'], url_path='bulk-update')
     def bulk_update(self, request):
