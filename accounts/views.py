@@ -18,15 +18,36 @@ class LoginView(APIView):
 
     def post(self, request):
 
-        email = request.data.get('email')
-        password = request.data.get('password')
+        email = request.data.get('email', '').strip()
+        password = request.data.get('password', '')
 
         user = authenticate(
             request,
             username=email,
             password=password
         )
+        
+        # If standard auth fails, try case-insensitive email check
+        if not user and email:
+            try:
+                user_obj = User.objects.get(email__iexact=email)
+                if user_obj.check_password(password):
+                    user = user_obj
+            except User.DoesNotExist:
+                pass
+
         # Even though frontend sends email, Django expects username param internally. username=email maps Username to email for Django.
+
+        if not user:
+            # Fallback for users created via admin panel or scripts where password might have been saved as plaintext
+            try:
+                potential_user = User.objects.get(email=email)
+                if potential_user.password == password:
+                    potential_user.set_password(password)
+                    potential_user.save()
+                    user = potential_user
+            except User.DoesNotExist:
+                pass
 
         if not user:
             return Response({"error": "Invalid credentials"}, status=401)
