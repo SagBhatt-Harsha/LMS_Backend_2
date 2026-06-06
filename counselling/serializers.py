@@ -16,7 +16,6 @@ class CounsellingSerializer(serializers.ModelSerializer):
 
         read_only_fields = (
             'id',
-            'date',
             'counselled_by',
             'counselled_by_name',
             'name',
@@ -24,7 +23,6 @@ class CounsellingSerializer(serializers.ModelSerializer):
             'gender',
             'ward_no',
             'caste',
-            'enrolled_flag'
         )
 
     def validate(self, attrs):

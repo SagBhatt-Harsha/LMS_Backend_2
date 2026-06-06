@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+import django.utils.timezone
 
 from mobilization.models import MobilizationRecord
 
@@ -21,7 +22,7 @@ class CounsellingLog(models.Model):
     mobilization_record = models.OneToOneField(MobilizationRecord, on_delete=models.CASCADE, related_name='counselling_log')
     # FK to mob Model
 
-    date = models.DateField(auto_now_add=True)
+    date = models.DateField(default=django.utils.timezone.now)
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES)
     slot = models.CharField(max_length=20, choices=SLOT_CHOICES, blank=True, null=True)
