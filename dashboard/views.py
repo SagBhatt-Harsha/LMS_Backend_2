@@ -155,8 +155,8 @@ class DashboardMetricsView(APIView):
         for r in recent_records:
             recent_list.append({
                 "id": r.id,
-                "name": r.name,
-                "mobile": r.mobile,
+                "name": r.mobilization_record.name if r.mobilization_record else "—",
+                "mobile": r.mobilization_record.mobile if r.mobilization_record else "—",
                 "gender": r.mobilization_record.gender if r.mobilization_record else "—",
                 "date": r.date,
                 "slot": r.slot,
