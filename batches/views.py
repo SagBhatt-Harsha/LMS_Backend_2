@@ -91,3 +91,52 @@ class BatchViewSet(viewsets.ModelViewSet):
             "data": serializer.data
         })   
 
+    @action(detail=True, methods=['post'], url_path='add_trainee', permission_classes=[IsAdminCounsellorTeacher])
+    def add_trainee(self, request, pk=None):
+        batch = self.get_object()
+        trainee_id = request.data.get('trainee_id')
+        
+        if not trainee_id:
+            return Response({"error": "trainee_id is required."}, status=400)
+            
+        try:
+            from onboarding.models import Trainee
+            trainee = Trainee.objects.get(id=trainee_id)
+        except Trainee.DoesNotExist:
+            return Response({"error": "Trainee not found."}, status=404)
+            
+        if batch.trainees.count() >= batch.capacity:
+            return Response({"error": "Batch is already full."}, status=400)
+            
+        if trainee in batch.trainees.all():
+            return Response({"error": "Trainee is already in this batch."}, status=400)
+            
+        trainee.batches.add(batch)
+        
+        # Roll number logic
+        from onboarding.utils import generate_roll_number
+        if not trainee.roll_number:
+            trainee.roll_number = generate_roll_number(trainee, batch)
+            trainee.save()
+            
+        return Response({"message": "Trainee added successfully."})
+
+    @action(detail=True, methods=['post'], url_path='remove_trainee', permission_classes=[IsAdminCounsellorTeacher])
+    def remove_trainee(self, request, pk=None):
+        batch = self.get_object()
+        trainee_id = request.data.get('trainee_id')
+        
+        if not trainee_id:
+            return Response({"error": "trainee_id is required."}, status=400)
+            
+        try:
+            from onboarding.models import Trainee
+            trainee = Trainee.objects.get(id=trainee_id)
+        except Trainee.DoesNotExist:
+            return Response({"error": "Trainee not found."}, status=404)
+            
+        if trainee not in batch.trainees.all():
+            return Response({"error": "Trainee is not in this batch."}, status=400)
+            
+        trainee.batches.remove(batch)
+        return Response({"message": "Trainee removed successfully."})

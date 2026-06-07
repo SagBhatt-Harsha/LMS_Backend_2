@@ -142,8 +142,11 @@ class RetentionRecordSerializer(serializers.ModelSerializer):
     salary_ctc = serializers.SerializerMethodField()
     place_of_posting = serializers.SerializerMethodField()
     placement_date = serializers.SerializerMethodField()
-    batch = serializers.CharField(source='batch.name', read_only=True)
+    batch = serializers.SerializerMethodField()
     assessment_score = serializers.SerializerMethodField()
+
+    def get_batch(self, obj):
+        return ", ".join([b.name for b in obj.batches.all()])
 
     retention_records = serializers.SerializerMethodField()
 

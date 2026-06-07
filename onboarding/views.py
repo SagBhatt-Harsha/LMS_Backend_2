@@ -36,7 +36,7 @@ class TraineeViewSet(viewsets.ModelViewSet):
         slot = self.request.query_params.get('slot')
 
         if batch:
-            queryset = queryset.filter(batch=batch)
+            queryset = queryset.filter(batches=batch)
 
         if domain:
             queryset = queryset.filter(domain=domain)
@@ -67,8 +67,9 @@ class TraineeViewSet(viewsets.ModelViewSet):
         )
 
         # Auto-gen Roll Number. Remove Later.
-        if trainee.batch:
-            trainee.roll_number = generate_roll_number(trainee, trainee.batch)
+        first_batch = trainee.batches.first()
+        if first_batch:
+            trainee.roll_number = generate_roll_number(trainee, first_batch)
             trainee.save()
     
     @action(detail=True, methods=['patch'], url_path='batch')
@@ -81,8 +82,9 @@ class TraineeViewSet(viewsets.ModelViewSet):
         serializer.save()
         
         # Auto-gen Roll Number. Remove Later.
-        if trainee.batch:
-            trainee.roll_number = generate_roll_number(trainee, trainee.batch)
+        first_batch = trainee.batches.first()
+        if first_batch and not trainee.roll_number:
+            trainee.roll_number = generate_roll_number(trainee, first_batch)
             trainee.save()
 
         response_serializer = BatchAssignResponseSerializer(trainee)

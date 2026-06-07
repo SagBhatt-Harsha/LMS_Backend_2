@@ -9,8 +9,8 @@ class Trainee(models.Model):
 
     registered_date = models.DateField(auto_now_add=True)
 
-    batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, null=True, blank=True, related_name='trainees')
-    # batch can be NULL because trainee may onboard before batch assignment.
+    batches = models.ManyToManyField(Batch, related_name='trainees', blank=True)
+    # batches can be empty because trainee may onboard before batch assignment.
 
     registration_code = models.CharField(max_length=50)
     roll_number = models.CharField(max_length=50, blank=True, null=True)
