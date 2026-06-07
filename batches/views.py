@@ -95,15 +95,36 @@ class BatchViewSet(viewsets.ModelViewSet):
     def add_trainee(self, request, pk=None):
         batch = self.get_object()
         trainee_id = request.data.get('trainee_id')
+        registration_id = request.data.get('registration_id')
         
-        if not trainee_id:
-            return Response({"error": "trainee_id is required."}, status=400)
+        if not trainee_id and not registration_id:
+            return Response({"error": "trainee_id or registration_id is required."}, status=400)
             
         try:
             from onboarding.models import Trainee
-            trainee = Trainee.objects.get(id=trainee_id)
-        except Trainee.DoesNotExist:
-            return Response({"error": "Trainee not found."}, status=404)
+            trainee = None
+            if trainee_id:
+                trainee = Trainee.objects.get(id=trainee_id)
+            elif registration_id:
+                from registration.models import Registration
+                registration = Registration.objects.get(id=registration_id)
+                if hasattr(registration, 'trainee'):
+                    trainee = registration.trainee
+                else:
+                    trainee = Trainee.objects.create(
+                        registration=registration,
+                        registration_code=registration.registration_id,
+                        name=registration.name,
+                        gender=registration.gender,
+                        contact=registration.mobile,
+                        slot=registration.slot,
+                        domain=registration.domain,
+                        education=registration.education,
+                        address=registration.address,
+                        registered_by=request.user
+                    )
+        except Exception as e:
+            return Response({"error": str(e)}, status=404)
             
         if batch.trainees.count() >= batch.capacity:
             return Response({"error": "Batch is already full."}, status=400)
