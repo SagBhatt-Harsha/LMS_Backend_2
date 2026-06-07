@@ -44,13 +44,16 @@ class Assessment(models.Model):
 
     assessment_name = models.CharField(max_length=200)
 
-    attendance_score = models.PositiveIntegerField(default=0)
-    class_performance_score = models.PositiveIntegerField(default=0)
-    assignments_score = models.PositiveIntegerField(default=0)
-    written_exam_score = models.PositiveIntegerField(default=0)
-    viva_score = models.PositiveIntegerField(default=0)
+    attendance_score = models.FloatField(default=0)
+    class_performance_score = models.FloatField(default=0)
+    assignments_score = models.FloatField(default=0)
+    written_exam_score = models.FloatField(default=0)
+    viva_score = models.FloatField(default=0)
 
-    total_score = models.PositiveIntegerField(default=0)
+    theory_score = models.FloatField(default=0)
+    skills_score = models.FloatField(default=0)
+
+    total_score = models.FloatField(default=0)
 
     grade = models.CharField(max_length=10, choices=GRADE_CHOICES, blank=True, null=True)
 
@@ -71,7 +74,7 @@ class Assessment(models.Model):
     def save(self, *args, **kwargs):
         # this auto-computes the total_score value in the backend.Does not wait for frontend input.
         self.total_score = (self.attendance_score + self.class_performance_score + self.assignments_score + 
-                            self.written_exam_score + self.viva_score
+                            self.written_exam_score + self.viva_score + self.theory_score + self.skills_score
                         )
 
         super().save(*args, **kwargs)

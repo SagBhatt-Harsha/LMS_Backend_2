@@ -66,6 +66,8 @@ class AssessmentSerializer(serializers.ModelSerializer):
             'assignments_score',
             'written_exam_score',
             'viva_score',
+            'theory_score',
+            'skills_score',
             'total_score',
             'grade',
             'assessment_date',
