@@ -7,7 +7,7 @@ from teachers.models import Teacher
 class Module(models.Model):
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
-        ('Going On', 'Going On'),
+        ('Ongoing', 'Ongoing'),
         ('Completed', 'Completed'),
     )
 
@@ -58,7 +58,7 @@ class Assessment(models.Model):
 
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
-        ('Going On', 'Going On'),
+        ('Ongoing', 'Ongoing'),
         ('Completed', 'Completed'),
     )
 
@@ -82,7 +82,7 @@ class Assessment(models.Model):
 class InternalAssessment(models.Model):
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
-        ('Going On', 'Going On'),
+        ('Ongoing', 'Ongoing'),
         ('Completed', 'Completed'),
     )
 
@@ -103,7 +103,7 @@ class InternalAssessment(models.Model):
 class PerformanceCriteria(models.Model):
     STATUS_CHOICES = (
         ('Pending', 'Pending'),
-        ('Going On', 'Going On'),
+        ('Ongoing', 'Ongoing'),
         ('Completed', 'Completed'),
     )
 
