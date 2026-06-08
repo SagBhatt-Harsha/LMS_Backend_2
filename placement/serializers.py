@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from .models import Interview, Retention
 from onboarding.models import Trainee
-from trainer.models import Assessment
+from trainer.models import Assessment, TraineeGlobalAssessment
 
 class PlacementCandidateSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='id', read_only=True)
@@ -31,18 +31,21 @@ class PlacementCandidateSerializer(serializers.ModelSerializer):
         ]
 
     def get_assessment_score(self, obj):
-        avg_score = (Assessment.objects.filter( trainee=obj ).aggregate( avg=Avg('total_score') )['avg'])
-        return round(avg_score, 2) if avg_score else 0
+        global_assessment = obj.global_assessments.first()
+        if global_assessment and global_assessment.grand_total:
+            return round(global_assessment.grand_total, 2)
+        return 0
 
     def get_attendance_score(self, obj):
-        avg_attendance = (Assessment.objects.filter( trainee=obj ).aggregate( avg=Avg('attendance_score') )['avg'])
-        return round(avg_attendance, 2) if avg_attendance else 0
+        global_assessment = obj.global_assessments.first()
+        if global_assessment and global_assessment.attendance_score:
+            return round(global_assessment.attendance_score, 2)
+        return 0
 
     def get_eligibility_status(self, obj):
-        avg_score = (Assessment.objects.filter(trainee=obj).aggregate(avg=Avg('total_score'))['avg'])
-        avg_attendance = (Assessment.objects.filter(trainee=obj).aggregate(avg=Avg('attendance_score'))['avg'])
+        global_assessment = obj.global_assessments.first()
 
-        if not avg_score or not avg_attendance:
+        if not global_assessment:
             return "Assessment Pending"
 
         if obj.training_completed:

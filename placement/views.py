@@ -125,6 +125,21 @@ class PlacementCandidateListView(ListAPIView):
     serializer_class = PlacementCandidateSerializer
     permission_classes = [IsAdminCounsellorPlacement]
 
+    def list(self, request, *args, **kwargs):
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            import traceback
+            error_trace = traceback.format_exc()
+            return Response({"error_debug": error_trace}, status=500)
+
     def get_queryset(self):
         queryset = Trainee.objects.all()
         domain = self.request.query_params.get('domain')
