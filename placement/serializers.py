@@ -6,7 +6,9 @@ from onboarding.models import Trainee
 from trainer.models import Assessment
 
 class PlacementCandidateSerializer(serializers.ModelSerializer):
-    student_id = serializers.IntegerField(source='id', read_only=True)
+    id = serializers.IntegerField(source='id', read_only=True)
+    registration = serializers.CharField(source='registration_code', read_only=True)
+    mobile = serializers.CharField(source='contact', read_only=True)
 
     assessment_score = serializers.SerializerMethodField()
     attendance_score = serializers.SerializerMethodField()
@@ -16,11 +18,13 @@ class PlacementCandidateSerializer(serializers.ModelSerializer):
         model = Trainee
 
         fields = [
-            'student_id',
+            'id',
+            'registration',
+            'mobile',
             'name',
             'domain',
             'gender',
-
+            'training_completed',
             'assessment_score',
             'attendance_score',
             'eligibility_status'

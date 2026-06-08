@@ -126,7 +126,7 @@ class PlacementCandidateListView(ListAPIView):
     permission_classes = [IsAdminCounsellorPlacement]
 
     def get_queryset(self):
-        queryset = Trainee.objects.filter(eligible_for_placement=True)
+        queryset = Trainee.objects.all()
         domain = self.request.query_params.get('domain')
         gender = self.request.query_params.get('gender')
         eligibility = self.request.query_params.get('eligibility')
