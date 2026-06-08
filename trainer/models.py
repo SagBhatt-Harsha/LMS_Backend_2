@@ -136,6 +136,13 @@ class TraineeGlobalAssessment(models.Model):
     grand_total = models.FloatField(default=0)
     grade = models.CharField(max_length=10, blank=True, null=True)
     
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Ongoing', 'Ongoing'),
+        ('Completed', 'Completed'),
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
