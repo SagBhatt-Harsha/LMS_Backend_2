@@ -75,9 +75,8 @@ class Assessment(models.Model):
 
     def save(self, *args, **kwargs):
         # this auto-computes the total_score value in the backend.Does not wait for frontend input.
-        self.total_score = (self.attendance_score + self.class_performance_score + self.assignments_score + 
-                            self.written_exam_score + self.viva_score + self.theory_score + self.skills_score
-                        )
+        self.total_score = (self.class_performance_score + self.assignments_score + 
+                            self.theory_score + self.skills_score)
 
         super().save(*args, **kwargs)
 
@@ -125,3 +124,22 @@ class PerformanceCriteria(models.Model):
 
     def __str__(self):
         return f"{self.batch.name} - {self.criteria_id}"
+
+class TraineeGlobalAssessment(models.Model):
+    trainee = models.ForeignKey(Trainee, on_delete=models.CASCADE, related_name='global_assessments')
+    batch = models.ForeignKey(Batch, on_delete=models.CASCADE, related_name='global_assessments')
+    
+    attendance_score = models.FloatField(default=0)
+    written_exam_score = models.FloatField(default=0)
+    viva_score = models.FloatField(default=0)
+    
+    grand_total = models.FloatField(default=0)
+    grade = models.CharField(max_length=10, blank=True, null=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('trainee', 'batch')
+
+    def __str__(self):
+        return f"Global Assessment for {self.trainee.name} in {self.batch.name}"

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Module, Assessment, InternalAssessment, PerformanceCriteria
+from .models import Module, Assessment, InternalAssessment, PerformanceCriteria, TraineeGlobalAssessment
 
 class ModuleSerializer(serializers.ModelSerializer):
     batch_name = serializers.CharField(source='batch.name', read_only=True)
@@ -116,3 +116,12 @@ class AssessmentSerializer(serializers.ModelSerializer):
                 })
 
         return attrs
+
+class TraineeGlobalAssessmentSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='trainee.name', read_only=True)
+    batch_name = serializers.CharField(source='batch.name', read_only=True)
+
+    class Meta:
+        model = TraineeGlobalAssessment
+        fields = '__all__'
+        read_only_fields = ('id', 'student_name', 'batch_name', 'created_at')

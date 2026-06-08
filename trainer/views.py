@@ -5,8 +5,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 
-from .models import Assessment, Module, InternalAssessment, PerformanceCriteria
-from .serializers import AssessmentSerializer, ModuleSerializer, InternalAssessmentSerializer, PerformanceCriteriaSerializer
+from .models import Assessment, Module, InternalAssessment, PerformanceCriteria, TraineeGlobalAssessment
+from .serializers import AssessmentSerializer, ModuleSerializer, InternalAssessmentSerializer, PerformanceCriteriaSerializer, TraineeGlobalAssessmentSerializer
 
 from onboarding.models import Trainee
 from batches.models import Batch
@@ -274,6 +274,73 @@ class AssessmentViewSet(viewsets.ModelViewSet):
 
         instance.delete()
 
+class TraineeGlobalAssessmentViewSet(viewsets.ModelViewSet):
+    queryset = TraineeGlobalAssessment.objects.all()
+    serializer_class = TraineeGlobalAssessmentSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsTeacherOnly()]
+        return [IsAdminCounsellorTeacher()]
+
+    def get_queryset(self):
+        queryset = TraineeGlobalAssessment.objects.all()
+        batch_id = self.request.query_params.get('batch_id')
+        trainee_id = self.request.query_params.get('trainee_id')
+
+        if batch_id:
+            queryset = queryset.filter(batch=batch_id)
+        if trainee_id:
+            queryset = queryset.filter(trainee=trainee_id)
+
+        # Restrict Teacher View
+        if getattr(self.request.user, 'role', None) == 'teacher':
+            try:
+                teacher = Teacher.objects.get(email=self.request.user.email)
+                queryset = queryset.filter(batch__teacher=teacher)
+            except Teacher.DoesNotExist:
+                queryset = queryset.none()
+        return queryset
+
+    def perform_create(self, serializer):
+        try:
+            teacher = Teacher.objects.get(email=self.request.user.email)
+        except Teacher.DoesNotExist:
+            raise ValidationError("No teacher profile linked.")
+
+        batch = serializer.validated_data['batch']
+        trainee = serializer.validated_data['trainee']
+
+        if batch.teacher != teacher:
+            raise ValidationError("You are not assigned to this batch.")
+        if trainee.batch != batch and batch not in trainee.batches.all():
+            raise ValidationError("Trainee does not belong to this batch.")
+
+        serializer.save()
+
+    def perform_update(self, serializer):
+        try:
+            teacher = Teacher.objects.get(email=self.request.user.email)
+        except Teacher.DoesNotExist:
+            raise ValidationError("No teacher profile linked.")
+
+        assessment = self.get_object()
+        if assessment.batch.teacher != teacher:
+            raise ValidationError("You are not assigned to this batch.")
+
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        try:
+            teacher = Teacher.objects.get(email=self.request.user.email)
+        except Teacher.DoesNotExist:
+            raise ValidationError("No teacher profile linked.")
+
+        if instance.batch.teacher != teacher:
+            raise ValidationError("You are not assigned to this batch.")
+        instance.delete()
+
+
 class TrainerDashboardView(APIView):
     permission_classes = [IsTeacherOnly]
 
@@ -311,7 +378,7 @@ class TrainerDashboardView(APIView):
         else:
             completion_ratio = 0
 
-        average_score = ( Assessment.objects.filter( batch__in=trainer_batches ).aggregate( avg = Avg('total_score') )['avg'] or 0 )
+        average_score = ( TraineeGlobalAssessment.objects.filter( batch__in=trainer_batches ).aggregate( avg = Avg('grand_total') )['avg'] or 0 )
 
         return Response({
             "trainer_name":teacher.name,
@@ -340,7 +407,7 @@ class AdminTrainerDashboardView(APIView):
 
         completed_training = trainees.filter(training_completed=True).count()
 
-        average_score = ( Assessment.objects.aggregate( avg = Avg('total_score') )['avg'] or 0 )
+        average_score = ( TraineeGlobalAssessment.objects.aggregate( avg = Avg('grand_total') )['avg'] or 0 )
 
         # Domain-wise Completion Ratio
         domain_completion_rates = []
