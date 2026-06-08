@@ -103,7 +103,7 @@ class AssessmentSerializer(serializers.ModelSerializer):
         
         # TRAINEE MUST BELONG TO SAME BATCH
         if trainee and batch:
-            if trainee.batch != batch:
+            if batch not in trainee.batches.all():
                 raise serializers.ValidationError({
                     "batch":"Trainee is not enrolled in this batch."
                 })

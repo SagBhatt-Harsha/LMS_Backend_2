@@ -233,7 +233,7 @@ class AssessmentViewSet(viewsets.ModelViewSet):
         if batch.teacher != teacher:
             raise ValidationError("You are not assigned to this batch.")
 
-        if trainee.batch != batch:
+        if batch not in trainee.batches.all():
             raise ValidationError("Trainee does not belong to this batch.")
 
         serializer.save(teacher=teacher)
@@ -313,7 +313,7 @@ class TraineeGlobalAssessmentViewSet(viewsets.ModelViewSet):
 
         if batch.teacher != teacher:
             raise ValidationError("You are not assigned to this batch.")
-        if trainee.batch != batch and batch not in trainee.batches.all():
+        if batch not in trainee.batches.all():
             raise ValidationError("Trainee does not belong to this batch.")
 
         serializer.save()
