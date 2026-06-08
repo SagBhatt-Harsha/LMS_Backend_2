@@ -17,6 +17,8 @@ class Module(models.Model):
 
     theory_hrs = models.PositiveIntegerField()
     practical_hrs = models.PositiveIntegerField()
+    taught_theory_hrs = models.PositiveIntegerField(default=0)
+    taught_practical_hrs = models.PositiveIntegerField(default=0)
 
     ssc_code = models.CharField(max_length=100, blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')

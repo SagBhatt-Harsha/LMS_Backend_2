@@ -16,6 +16,8 @@ class ModuleSerializer(serializers.ModelSerializer):
             'name',
             'theory_hrs',
             'practical_hrs',
+            'taught_theory_hrs',
+            'taught_practical_hrs',
             'ssc_code',
             'attendance_score',
             'remarks',
