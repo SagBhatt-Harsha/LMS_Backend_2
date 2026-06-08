@@ -198,7 +198,7 @@ class DashboardMetricsView(APIView):
         batches = Batch.objects.filter(teacher=teacher)
         
         # Calculate KPI counts based on Trainees assigned to these batches
-        trainees = Trainee.objects.filter(batch__in=batches)
+        trainees = Trainee.objects.filter(batches__teacher=teacher).distinct()
         
         enrolled_count = trainees.count()
         female_count = trainees.filter(gender='Female').count()
