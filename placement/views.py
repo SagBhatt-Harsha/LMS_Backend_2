@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.generics import ListAPIView
 
 from onboarding.models import Trainee
+from registration.models import Registration
 from .models import Interview, Retention
 
 from .serializers import (PlacementCandidateSerializer, InterviewSerializer, RetentionSerializer, RetentionMonthSerializer, RetentionRecordSerializer)
@@ -138,10 +139,23 @@ class PlacementCandidateListView(ListAPIView):
         except Exception as e:
             import traceback
             error_trace = traceback.format_exc()
-            return Response({"error_debug": error_trace}, status=500)
+            # Return the error as a fake candidate so it renders in the UI table!
+            fake_candidate = {
+                "id": 999999,
+                "registration": "ERROR",
+                "mobile": "0000000000",
+                "name": str(e),
+                "domain": error_trace[:100],  # Show first 100 chars in domain column
+                "gender": "Error",
+                "training_completed": False,
+                "assessment_score": 0,
+                "attendance_score": 0,
+                "eligibility_status": error_trace[100:300] # Show more trace in status
+            }
+            return Response([fake_candidate], status=200)
 
     def get_queryset(self):
-        queryset = Trainee.objects.all()
+        queryset = Registration.objects.all()
         domain = self.request.query_params.get('domain')
         gender = self.request.query_params.get('gender')
         eligibility = self.request.query_params.get('eligibility')
@@ -153,7 +167,7 @@ class PlacementCandidateListView(ListAPIView):
             queryset = queryset.filter(gender=gender)
 
         if eligibility == 'completed_assessment':
-            queryset = queryset.filter(training_completed=True)
+            queryset = queryset.filter(trainee__training_completed=True)
 
         return queryset
 

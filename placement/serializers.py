@@ -2,23 +2,21 @@ from django.db.models import Avg
 from rest_framework import serializers
 
 from .models import Interview, Retention
-from onboarding.models import Trainee
-from trainer.models import Assessment, TraineeGlobalAssessment
+from registration.models import Registration
 
 class PlacementCandidateSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='id', read_only=True)
-    registration = serializers.CharField(source='registration_code', read_only=True)
-    mobile = serializers.CharField(source='contact', read_only=True)
-
+    registration = serializers.CharField(source='registration_id', read_only=True)
+    id = serializers.SerializerMethodField()
+    
     assessment_score = serializers.SerializerMethodField()
     attendance_score = serializers.SerializerMethodField()
     eligibility_status = serializers.SerializerMethodField()
+    training_completed = serializers.SerializerMethodField()
 
     class Meta:
-        model = Trainee
-
+        model = Registration
         fields = [
-            'id',
+            'id', 
             'registration',
             'mobile',
             'name',
@@ -30,26 +28,51 @@ class PlacementCandidateSerializer(serializers.ModelSerializer):
             'eligibility_status'
         ]
 
+    def get_id(self, obj):
+        try:
+            return obj.trainee.id
+        except Exception:
+            return obj.id
+
+    def get_training_completed(self, obj):
+        try:
+            return obj.trainee.training_completed
+        except Exception:
+            return False
+
     def get_assessment_score(self, obj):
-        global_assessment = obj.global_assessments.first()
-        if global_assessment and global_assessment.grand_total:
-            return round(global_assessment.grand_total, 2)
+        try:
+            global_assessment = obj.trainee.global_assessments.first()
+            if global_assessment and global_assessment.grand_total:
+                return round(global_assessment.grand_total, 2)
+        except Exception:
+            pass
         return 0
 
     def get_attendance_score(self, obj):
-        global_assessment = obj.global_assessments.first()
-        if global_assessment and global_assessment.attendance_score:
-            return round(global_assessment.attendance_score, 2)
+        try:
+            global_assessment = obj.trainee.global_assessments.first()
+            if global_assessment and global_assessment.attendance_score:
+                return round(global_assessment.attendance_score, 2)
+        except Exception:
+            pass
         return 0
 
     def get_eligibility_status(self, obj):
-        global_assessment = obj.global_assessments.first()
-
-        if not global_assessment:
+        try:
+            if not hasattr(obj, 'trainee'):
+                return "Not Onboarded"
+            global_assessment = obj.trainee.global_assessments.first()
+            if not global_assessment:
+                return "Assessment Pending"
+        except Exception:
             return "Assessment Pending"
 
-        if obj.training_completed:
-            return "Eligible for Placements. Completed All Assessments."
+        try:
+            if obj.trainee.training_completed:
+                return "Eligible for Placements. Completed All Assessments."
+        except Exception:
+            pass
         return "Not Eligible for Placements. Training Not Complete OR All Assessments have not been completed."
 
 
