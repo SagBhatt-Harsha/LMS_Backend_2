@@ -290,7 +290,7 @@ class TrainerDashboardView(APIView):
         trainer_batches = Batch.objects.filter(teacher=teacher)
 
         # TRAINER TRAINEES
-        trainees = Trainee.objects.filter(batches__in=trainer_batches).distinct()
+        trainees = Trainee.objects.filter(batches__teacher=teacher).distinct()
 
         # Dashboard Metrics
         students_under_training = trainees.count()
