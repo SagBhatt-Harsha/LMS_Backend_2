@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from .models import Interview, Retention
 from registration.models import Registration
+from onboarding.models import Trainee
 
 class PlacementCandidateSerializer(serializers.ModelSerializer):
     registration = serializers.CharField(source='registration_id', read_only=True)
