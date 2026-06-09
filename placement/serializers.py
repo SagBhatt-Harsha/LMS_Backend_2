@@ -224,8 +224,13 @@ class RetentionRecordSerializer(serializers.ModelSerializer):
         return (interview.interview_date if interview else None)
 
     def get_assessment_score(self, obj):
-        avg_score = (Assessment.objects.filter( trainee=obj ).aggregate( avg=Avg('total_score') )['avg'])
-        return round(avg_score, 2) if avg_score else 0
+        try:
+            global_assessment = obj.global_assessments.first()
+            if global_assessment and global_assessment.grand_total:
+                return round(global_assessment.grand_total, 2)
+        except Exception:
+            pass
+        return 0
 
     def get_retention_records(self, obj):
         records = obj.retentions.order_by('month_number')
