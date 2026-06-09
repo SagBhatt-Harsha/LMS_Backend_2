@@ -24,8 +24,6 @@ class PlacementCandidateSerializer(serializers.ModelSerializer):
             'domain',
             'gender',
             'training_completed',
-            'assessment_score',
-            'attendance_score',
             'eligibility_status'
         ]
 
@@ -41,40 +39,45 @@ class PlacementCandidateSerializer(serializers.ModelSerializer):
         except Exception:
             return False
 
-    def get_assessment_score(self, obj):
-        try:
-            global_assessment = obj.trainee.global_assessments.first()
-            if global_assessment and global_assessment.grand_total:
-                return round(global_assessment.grand_total, 2)
-        except Exception:
-            pass
-        return 0
-
-    def get_attendance_score(self, obj):
-        try:
-            global_assessment = obj.trainee.global_assessments.first()
-            if global_assessment and global_assessment.attendance_score:
-                return round(global_assessment.attendance_score, 2)
-        except Exception:
-            pass
-        return 0
-
     def get_eligibility_status(self, obj):
         try:
             if not hasattr(obj, 'trainee'):
-                return "Not Onboarded"
-            global_assessment = obj.trainee.global_assessments.first()
-            if not global_assessment:
-                return "Assessment Pending"
+                return "Pending"
+                
+            trainee = obj.trainee
+            all_batches = trainee.batches.all()
+            
+            if not all_batches.exists():
+                return "Pending"
+                
+            has_ongoing_or_completed = False
+            is_eligible = False
+            
+            for batch in all_batches:
+                modules = batch.modules.all()
+                if not modules.exists():
+                    continue
+                    
+                batch_has_ongoing = any(m.status in ['Ongoing', 'Completed'] for m in modules)
+                if batch_has_ongoing:
+                    has_ongoing_or_completed = True
+                    
+                batch_all_completed = all(m.status == 'Completed' for m in modules)
+                
+                if batch_all_completed:
+                    global_assessment = trainee.global_assessments.filter(batch=batch).first()
+                    if global_assessment and (global_assessment.grand_total > 0 or global_assessment.grade):
+                        is_eligible = True
+                        break
+            
+            if is_eligible:
+                return "Eligible"
+            if has_ongoing_or_completed:
+                return "In Training"
+                
+            return "Pending"
         except Exception:
-            return "Assessment Pending"
-
-        try:
-            if obj.trainee.training_completed:
-                return "Eligible for Placements. Completed All Assessments."
-        except Exception:
-            pass
-        return "Not Eligible for Placements. Training Not Complete OR All Assessments have not been completed."
+            return "Pending"
 
 
 class InterviewSerializer(serializers.ModelSerializer):
