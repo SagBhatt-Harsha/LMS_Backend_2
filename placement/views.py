@@ -21,7 +21,7 @@ class PlacementDashboardView(APIView):
     def get(self, request):
         registered_for_training = Trainee.objects.count()
 
-        appeared_for_interview = Interview.objects.filter(status='Appeared').values('trainee').distinct().count()
+        appeared_for_interview = Interview.objects.filter(appeared=True).values('trainee').distinct().count()
         students_placed = Interview.objects.filter(status='Selected').values('trainee').distinct().count()
 
         retained_6_months = Retention.objects.filter(month_number=6,retention_status__in=[
