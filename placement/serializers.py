@@ -9,8 +9,6 @@ class PlacementCandidateSerializer(serializers.ModelSerializer):
     registration = serializers.CharField(source='registration_id', read_only=True)
     id = serializers.SerializerMethodField()
     
-    assessment_score = serializers.SerializerMethodField()
-    attendance_score = serializers.SerializerMethodField()
     eligibility_status = serializers.SerializerMethodField()
     training_completed = serializers.SerializerMethodField()
 
