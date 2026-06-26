@@ -368,7 +368,14 @@ class TrainerDashboardView(APIView):
         sc_st_students = trainees.filter(registration__caste__in=['SC', 'ST']).count()
         obc_students = trainees.filter(registration__caste__in=['OBC']).count()
 
-        completed_training = trainees.filter(training_completed=True).count()
+        # completed_training = trainees.filter(training_completed=True).count()
+
+        completed_training = 0
+        trainer_batches_prefetched = trainer_batches.prefetch_related('modules')
+        for batch in trainer_batches_prefetched:
+            modules = batch.modules.all()
+            if len(modules) > 0 and all(m.status == 'Completed' for m in modules):
+                completed_training += 1
 
         received_ssc_certificate = trainees.filter(ssc_certificate_received=True).count()
 
@@ -379,6 +386,14 @@ class TrainerDashboardView(APIView):
             completion_ratio = 0
 
         average_score = ( TraineeGlobalAssessment.objects.filter( batch__in=trainer_batches ).aggregate( avg = Avg('grand_total') )['avg'] or 0 )
+
+        batch_completion_rates = []
+        for batch in trainer_batches:
+            batch_avg_score = TraineeGlobalAssessment.objects.filter(batch=batch).aggregate(avg=Avg('grand_total'))['avg'] or 0
+            batch_completion_rates.append({
+                "batch_id": batch.id,
+                "average_score": round(batch_avg_score, 2)
+            })
 
         return Response({
             "trainer_name":teacher.name,
@@ -394,7 +409,8 @@ class TrainerDashboardView(APIView):
             "completed_training":completed_training,
             "received_ssc_certificate":received_ssc_certificate,
             "completion_ratio":completion_ratio,
-            "average_score":round(average_score, 2)
+            "average_score":round(average_score, 2),
+            "batch_completion_rates": batch_completion_rates
         })
 
 
@@ -405,7 +421,12 @@ class AdminTrainerDashboardView(APIView):
         total_batches = Batch.objects.count()
         trainees = Trainee.objects.all()
 
-        completed_training = trainees.filter(training_completed=True).count()
+        completed_training = 0
+        batches_prefetched = Batch.objects.prefetch_related('modules').all()
+        for batch in batches_prefetched:
+            modules = batch.modules.all()
+            if len(modules) > 0 and all(m.status == 'Completed' for m in modules):
+                completed_training += 1
 
         average_score = ( TraineeGlobalAssessment.objects.aggregate( avg = Avg('grand_total') )['avg'] or 0 )
 
@@ -446,12 +467,15 @@ class AdminTrainerDashboardView(APIView):
             else:
                 completion_rate = 0
 
+            batch_avg_score = TraineeGlobalAssessment.objects.filter(batch=batch).aggregate(avg=Avg('grand_total'))['avg'] or 0
+
             batch_completion_rates.append({
                 "batch_id": batch.id,
                 "batch_name": batch.name,
                 "total_students": total_batch_students,
                 "completed_students": completed_batch_students,
-                "completion_rate": completion_rate
+                "completion_rate": completion_rate,
+                "average_score": round(batch_avg_score, 2)
             })
 
         return Response({
