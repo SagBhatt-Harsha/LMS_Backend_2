@@ -21,11 +21,10 @@ class PlacementDashboardView(APIView):
     def get(self, request):
         registered_for_training = Trainee.objects.count()
 
-        appeared_for_interview = Interview.objects.filter(appeared=True).values('trainee').distinct().count()
-        students_placed = Interview.objects.filter(status='Selected').values('trainee').distinct().count()
+        appeared_for_interview = Interview.objects.filter(scheduled=True).values('trainee').distinct().count()
+        students_placed = Interview.objects.filter(status='Selected', scheduled=True).values('trainee').distinct().count()
 
-        retained_6_months = Retention.objects.filter(month_number=6,retention_status__in=[
-            'Retained', 'Changed']).values('trainee').distinct().count()
+        retained_6_months = Retention.objects.filter(month_number=6, retention_status='Retained').values('trainee').distinct().count()
 
         completed_training = Trainee.objects.filter(training_completed=True).count()
 
@@ -55,7 +54,7 @@ class PlacementDashboardView(APIView):
 
         for domain in Trainee.objects.values_list('domain', flat=True).distinct():
             total = Trainee.objects.filter(domain=domain).count()
-            placed = Interview.objects.filter(trainee__domain=domain, status='Selected').values('trainee').distinct().count()
+            placed = Interview.objects.filter(trainee__domain=domain, status='Selected', scheduled=True).values('trainee').distinct().count()
 
             percentage = 0
 
@@ -69,11 +68,11 @@ class PlacementDashboardView(APIView):
         domain_retention = []
 
         for domain in Trainee.objects.values_list('domain', flat=True).distinct():
-            placed = Interview.objects.filter(trainee__domain=domain, status='Selected').values('trainee').distinct().count()
+            placed = Interview.objects.filter(trainee__domain=domain, status='Selected', scheduled=True).values('trainee').distinct().count()
 
             retained = Retention.objects.filter(
-                trainee__domain=domain, month_number=6, retention_status__in=[
-                    'Retained', 'Changed']).values('trainee').distinct().count()
+                trainee__domain=domain, month_number=6, retention_status='Retained'
+            ).values('trainee').distinct().count()
 
             percentage = 0
             if placed > 0:
