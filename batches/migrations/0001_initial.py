@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=150)),
                 ('slot', models.CharField(choices=[('Morning', 'Morning'), ('Evening', 'Evening')], max_length=20)),
-                ('domain', models.CharField(choices=[('Digital Marketing', 'Digital Marketing'), ('ITES', 'ITES'), ('Sales and Customer Relation', 'Sales and Customer Relation'), ('Hospitality and Tourism', 'Hospitality and Tourism'), ('Logistics and Warehousing', 'Logistics and Warehousing'), ('Industrial Sewing', 'Industrial Sewing')], max_length=50)),
+                ('domain', models.CharField(choices=[('Digital Marketing', 'Digital Marketing'), ('Digital Mitra', 'Digital Mitra'), ('Retail Sales Associate', 'Retail Sales Associate'), ('Hospitality Management', 'Hospitality Management'), ('Logistics and Warehousing', 'Logistics and Warehousing'), ('Industrial Sewing', 'Industrial Sewing')], max_length=50)),
                 ('start_date', models.DateField()),
                 ('end_date', models.DateField()),
                 ('start_time', models.TimeField()),

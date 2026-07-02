@@ -11,9 +11,9 @@ class Batch(models.Model):
 
     DOMAIN_CHOICES = (
         ('Digital Marketing', 'Digital Marketing'),
-        ('ITES', 'ITES'),
-        ('Sales and Customer Relation', 'Sales and Customer Relation'),
-        ('Hospitality and Tourism', 'Hospitality and Tourism'),
+        ('Digital Mitra', 'Digital Mitra'),
+        ('Retail Sales Associate', 'Retail Sales Associate'),
+        ('Hospitality Management', 'Hospitality Management'),
         ('Logistics and Warehousing', 'Logistics and Warehousing'),
         ('Industrial Sewing', 'Industrial Sewing'),
     )

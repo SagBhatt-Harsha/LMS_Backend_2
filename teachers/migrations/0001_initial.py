@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
-                ('domain', models.CharField(choices=[('Digital Marketing', 'Digital Marketing'), ('ITES', 'ITES'), ('Sales and Customer Relation', 'Sales and Customer Relation'), ('Hospitality and Tourism', 'Hospitality and Tourism'), ('Logistics and Warehousing', 'Logistics and Warehousing'), ('Industrial Sewing', 'Industrial Sewing')], max_length=50)),
+                ('domain', models.CharField(choices=[('Digital Marketing', 'Digital Marketing'), ('Digital Mitra', 'Digital Mitra'), ('Retail Sales Associate', 'Retail Sales Associate'), ('Hospitality Management', 'Hospitality Management'), ('Logistics and Warehousing', 'Logistics and Warehousing'), ('Industrial Sewing', 'Industrial Sewing')], max_length=50)),
                 ('email', models.EmailField(blank=True, max_length=254, null=True)),
                 ('phone', models.CharField(blank=True, max_length=10, null=True)),
             ],
