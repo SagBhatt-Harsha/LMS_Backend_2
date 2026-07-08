@@ -20,7 +20,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     first_name = models.CharField(max_length=100)
 
-    last_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100, blank=True)
 
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
@@ -34,13 +34,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = 'email'
 
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'role']
+    REQUIRED_FIELDS = ['first_name', 'role']
 
     def __str__(self):
         # String Representation.Shows in admin panel.
-        return f"{self.first_name} {self.last_name}:{self.role}"
+        return f"{self.first_name or ''} {self.last_name or ''}".strip() + f":{self.role}"
 
     @property
     def name(self):
         # Virtual Field made using two Inputted Fields.
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name or ''} {self.last_name or ''}".strip()

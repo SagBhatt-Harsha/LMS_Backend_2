@@ -14,12 +14,13 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_name(self, obj):
         # Function Name : get_NameofDerivedField.
-        return f"{obj.first_name} {obj.last_name}"
+        return f"{obj.first_name or ''} {obj.last_name or ''}".strip()
 
 
 class UserCreateUpdateSerializer(serializers.ModelSerializer):
 
     password = serializers.CharField(write_only=True)
+    last_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default='')
 
     class Meta:
         model = User
