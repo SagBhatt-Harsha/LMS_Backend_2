@@ -38,16 +38,16 @@ class Registration(models.Model):
     name = models.CharField(max_length=100)
     mobile = models.CharField(max_length=10)
     gender = models.CharField(max_length=10)
-    father_name = models.CharField(max_length=100)
-    dob = models.DateField()
-    ward_no = models.CharField(max_length=20)
-    pin = models.CharField(max_length=6)
+    father_name = models.CharField(max_length=100, blank=True, null=True)
+    dob = models.DateField(blank=True, null=True)
+    ward_no = models.CharField(max_length=20, blank=True, null=True)
+    pin = models.CharField(max_length=6, blank=True, null=True)
 
     # Denormalized Counselling Fields
-    slot = models.CharField(max_length=20)
-    domain = models.CharField(max_length=100)
-    counselled_by_name = models.CharField(max_length=100)
-    counselling_date = models.DateField()
+    slot = models.CharField(max_length=20, blank=True, null=True)
+    domain = models.CharField(max_length=100, blank=True, null=True)
+    counselled_by_name = models.CharField(max_length=100, blank=True, null=True)
+    counselling_date = models.DateField(blank=True, null=True)
 
     # Registration-specific Fields
     caste = models.CharField(max_length=10, choices=CASTE_CHOICES)

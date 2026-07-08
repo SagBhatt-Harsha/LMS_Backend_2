@@ -60,44 +60,66 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
+        from rest_framework import serializers as drf_serializers
         counselling_log = serializer.validated_data['counselling_log']
 
         if counselling_log.status != 'Interested':
-            raise ValueError(
-                'Only Interested students can register.'
+            raise drf_serializers.ValidationError(
+                {'error': 'Only Interested students can register.'}
             )
 
-        mobilization = counselling_log.mobilization_record
-        qualifications = mobilization.qualifications.all()
+        if Registration.objects.filter(counselling_log=counselling_log).exists():
+            raise drf_serializers.ValidationError(
+                {'error': 'This student is already registered.'}
+            )
+
+        mobilization = getattr(counselling_log, 'mobilization_record', None)
+        qualifications = mobilization.qualifications.all() if mobilization and hasattr(mobilization, 'qualifications') else []
 
         highest_qualification = None
 
-        if qualifications.exists():
+        if qualifications and qualifications.exists():
             highest_qualification = qualifications.order_by('-sl_no').first().exam_name
-            # Highest sl_no's exam_name will be assigned to highest_qualification.
 
-        center = serializer.validated_data['center']
-        center_code = center[:3].upper()
+        center = serializer.validated_data.get('center') or self.request.data.get('center') or 'Faridabad'
+        center_code = str(center)[:3].upper()
 
         serial = Registration.objects.count() + 1
 
         registration_id = (f"HSU/{center_code}/{serial:03d}")
 
+        req_data = self.request.data
+        name = (mobilization.name if mobilization else None) or req_data.get('name') or 'Unknown'
+        mobile = (mobilization.mobile if mobilization else None) or req_data.get('mobile') or ''
+        gender = (mobilization.gender if mobilization else None) or req_data.get('gender') or ''
+        father_name = (mobilization.father_name if mobilization else None) or req_data.get('father_name') or ''
+        dob = (mobilization.dob if mobilization else None) or req_data.get('dob') or None
+        if dob == '':
+            dob = None
+        ward_no = (mobilization.ward_no if mobilization else None) or req_data.get('ward_no') or ''
+        pin = (mobilization.pin if mobilization else None) or req_data.get('pin') or ''
+        slot = counselling_log.slot or req_data.get('slot') or ''
+        domain = counselling_log.domain or req_data.get('domain') or ''
+        counselled_by_name = counselling_log.counselled_by_name or req_data.get('counselled_by_name') or ''
+        counselling_date = counselling_log.date or req_data.get('counselling_date') or None
+        if counselling_date == '':
+            counselling_date = None
+
         serializer.save(
             registration_id = registration_id,
             registered_by = self.request.user,
-            name = mobilization.name,
-            mobile = mobilization.mobile,
-            gender = mobilization.gender,
-            father_name = mobilization.father_name,
-            dob = mobilization.dob,
-            ward_no = mobilization.ward_no,
-            pin = mobilization.pin,
-            slot = counselling_log.slot,
-            domain = counselling_log.domain,
-            counselled_by_name = counselling_log.counselled_by_name,
-            counselling_date = counselling_log.date,
-            education = highest_qualification
+            name = name,
+            mobile = mobile,
+            gender = gender,
+            father_name = father_name,
+            dob = dob,
+            ward_no = ward_no,
+            pin = pin,
+            slot = slot,
+            domain = domain,
+            counselled_by_name = counselled_by_name,
+            counselling_date = counselling_date,
+            education = highest_qualification or req_data.get('education') or ''
         )
 
         # Setting the enrolled_flag true for Counselled Students who have been registered. 

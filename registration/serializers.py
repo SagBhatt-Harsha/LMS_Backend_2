@@ -47,3 +47,14 @@ class RegistrationSerializer(serializers.ModelSerializer):
             'counselling_date',
             'education',
         )
+
+    def to_internal_value(self, data):
+        if hasattr(data, 'copy'):
+            data = data.copy()
+        elif isinstance(data, dict):
+            data = dict(data)
+        if isinstance(data, dict):
+            for field in ['family_income', 'personal_income', 'date_of_entry', 'email', 'aadhar_no', 'pan_no', 'landmark']:
+                if field in data and data[field] == '':
+                    data[field] = None
+        return super().to_internal_value(data)
