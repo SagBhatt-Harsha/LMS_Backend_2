@@ -20,6 +20,8 @@ class BatchAssignSerializer(serializers.ModelSerializer):
             return value
 
         for batch in value:
+            if (batch.domain or '').strip().lower() != (trainee.domain or '').strip().lower():
+                raise serializers.ValidationError(f"Batch domain ({batch.domain}) does not match Trainee domain ({trainee.domain}).")
             if batch not in trainee.batches.all() and batch.trainees.count() >= batch.capacity:
                 raise serializers.ValidationError(f"Batch {batch.name} is already full.")
 

@@ -129,6 +129,9 @@ class BatchViewSet(viewsets.ModelViewSet):
         if batch.trainees.count() >= batch.capacity:
             return Response({"error": "Batch is already full."}, status=400)
             
+        if (trainee.domain or '').strip().lower() != (batch.domain or '').strip().lower():
+            return Response({"error": f"Trainee domain ({trainee.domain}) does not match Batch domain ({batch.domain})."}, status=400)
+
         if trainee in batch.trainees.all():
             return Response({"error": "Trainee is already in this batch."}, status=400)
             
