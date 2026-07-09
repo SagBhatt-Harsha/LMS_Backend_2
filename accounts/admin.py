@@ -13,6 +13,7 @@ class UserAdmin(BaseUserAdmin):
         'email',
         'first_name',
         'last_name',
+        'phone',
         'role',
         'is_staff',
         'is_active',
@@ -23,6 +24,7 @@ class UserAdmin(BaseUserAdmin):
         'email',
         'first_name',
         'last_name',
+        'phone',
     )
 
     list_filter = (
@@ -42,7 +44,7 @@ class UserAdmin(BaseUserAdmin):
         }),
 
         ('Personal Info', {
-            'fields': ('first_name', 'last_name')
+            'fields': ('first_name', 'last_name', 'phone')
         }),
 
         ('Role Management', {
@@ -71,6 +73,7 @@ class UserAdmin(BaseUserAdmin):
                 'email',
                 'first_name',
                 'last_name',
+                'phone',
                 'role',
                 'password1',
                 'password2',

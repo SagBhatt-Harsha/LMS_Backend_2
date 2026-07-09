@@ -9,8 +9,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['id', 'name', 'email', 'role', 'created_at']
-        read_only_fields = ['id','created_at']
+        fields = ['id', 'name', 'first_name', 'last_name', 'email', 'phone', 'role', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
     def get_name(self, obj):
         # Function Name : get_NameofDerivedField.
@@ -19,21 +19,23 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserCreateUpdateSerializer(serializers.ModelSerializer):
 
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, required=False)
     last_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default='')
+    phone = serializers.CharField(max_length=15, required=False, allow_blank=True, allow_null=True, default='')
 
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'password', 'role']
+        fields = ['id', 'first_name', 'last_name', 'email', 'phone', 'password', 'role']
         read_only_fields = ['id']
 
     def create(self, validated_data):
         # for POST api endpoints
-        password = validated_data.pop('password')
+        password = validated_data.pop('password', None)
 
         user = User(**validated_data)
 
-        user.set_password(password)
+        if password:
+            user.set_password(password)
 
         user.save()
 

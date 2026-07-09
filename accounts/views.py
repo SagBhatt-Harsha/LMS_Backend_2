@@ -60,7 +60,8 @@ class LoginView(APIView):
                 "id": user.id,
                 "name": user.name,
                 "email": user.email,
-                "role": user.role
+                "role": user.role,
+                "phone": getattr(user, 'phone', '') or ''
             }
         })
 
@@ -86,7 +87,8 @@ class MeView(APIView):
             "id": user.id,
             "name": user.name,
             "email": user.email,
-            "role": user.role
+            "role": user.role,
+            "phone": getattr(user, 'phone', '') or ''
         })
 
 
