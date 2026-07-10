@@ -28,6 +28,22 @@ class MobilizationSerializer(serializers.ModelSerializer):
             'counselling_status',
         )
 
+        extra_kwargs = {
+            'mobile': {
+                'error_messages': {
+                    'unique': "Beneficiary already exists"
+                }
+            }
+        }
+
+    def validate_mobile(self, value):
+        query = MobilizationRecord.objects.filter(mobile=value)
+        if self.instance:
+            query = query.exclude(id=self.instance.id)
+        if query.exists():
+            raise serializers.ValidationError("Beneficiary already exists")
+        return value
+
     def get_counselling_status(self, obj):
         from counselling.models import CounsellingLog
         c_log = CounsellingLog.objects.filter(mobilization_record=obj).first()
