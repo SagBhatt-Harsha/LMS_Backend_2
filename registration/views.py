@@ -73,36 +73,45 @@ class RegistrationViewSet(viewsets.ModelViewSet):
                 {'error': 'This student is already registered.'}
             )
 
-        mobilization = getattr(counselling_log, 'mobilization_record', None)
-        qualifications = mobilization.qualifications.all() if mobilization and hasattr(mobilization, 'qualifications') else []
+        mobilization = None
+        try:
+            mobilization = counselling_log.mobilization_record
+        except Exception:
+            mobilization = None
 
         highest_qualification = None
-
-        if qualifications and qualifications.exists():
-            highest_qualification = qualifications.order_by('-sl_no').first().exam_name
+        try:
+            if mobilization and hasattr(mobilization, 'qualifications'):
+                first_qual = mobilization.qualifications.order_by('-sl_no').first()
+                if first_qual and hasattr(first_qual, 'exam_name'):
+                    highest_qualification = first_qual.exam_name
+        except Exception:
+            highest_qualification = None
 
         center = serializer.validated_data.get('center') or self.request.data.get('center') or 'Faridabad'
         center_code = str(center)[:3].upper()
 
         serial = Registration.objects.count() + 1
-
-        registration_id = (f"HSU/{center_code}/{serial:03d}")
+        registration_id = f"HSU/{center_code}/{serial:03d}"
+        while Registration.objects.filter(registration_id=registration_id).exists():
+            serial += 1
+            registration_id = f"HSU/{center_code}/{serial:03d}"
 
         req_data = self.request.data
         name = (mobilization.name if mobilization else None) or req_data.get('name') or 'Unknown'
         mobile = (mobilization.mobile if mobilization else None) or req_data.get('mobile') or ''
         gender = (mobilization.gender if mobilization else None) or req_data.get('gender') or ''
-        father_name = (mobilization.father_name if mobilization else None) or req_data.get('father_name') or ''
+        father_name = (mobilization.father_name if mobilization else None) or req_data.get('father_name') or req_data.get('fatherName') or ''
         dob = (mobilization.dob if mobilization else None) or req_data.get('dob') or None
-        if dob == '':
+        if dob == '' or dob == 'null' or not dob:
             dob = None
-        ward_no = (mobilization.ward_no if mobilization else None) or req_data.get('ward_no') or ''
+        ward_no = (mobilization.ward_no if mobilization else None) or req_data.get('ward_no') or req_data.get('wardNo') or ''
         pin = (mobilization.pin if mobilization else None) or req_data.get('pin') or ''
         slot = counselling_log.slot or req_data.get('slot') or ''
         domain = counselling_log.domain or req_data.get('domain') or ''
-        counselled_by_name = counselling_log.counselled_by_name or req_data.get('counselled_by_name') or ''
-        counselling_date = counselling_log.date or req_data.get('counselling_date') or None
-        if counselling_date == '':
+        counselled_by_name = counselling_log.counselled_by_name or req_data.get('counselled_by_name') or req_data.get('counselledByName') or ''
+        counselling_date = counselling_log.date or req_data.get('counselling_date') or req_data.get('counsellingDate') or None
+        if counselling_date == '' or counselling_date == 'null' or not counselling_date:
             counselling_date = None
 
         serializer.save(
@@ -123,8 +132,11 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         )
 
         # Setting the enrolled_flag true for Counselled Students who have been registered. 
-        counselling_log.enrolled_flag = True
-        counselling_log.save(update_fields=['enrolled_flag'])
+        try:
+            counselling_log.enrolled_flag = True
+            counselling_log.save(update_fields=['enrolled_flag'])
+        except Exception:
+            pass
 
 
     @action(detail=False, methods=['get'])

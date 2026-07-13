@@ -54,7 +54,27 @@ class RegistrationSerializer(serializers.ModelSerializer):
         elif isinstance(data, dict):
             data = dict(data)
         if isinstance(data, dict):
-            for field in ['family_income', 'personal_income', 'date_of_entry', 'email', 'aadhar_no', 'pan_no', 'landmark']:
-                if field in data and data[field] == '':
+            camel_map = {
+                'familyIncome': 'family_income',
+                'personalIncome': 'personal_income',
+                'dateOfEntry': 'date_of_entry',
+                'aadharNo': 'aadhar_no',
+                'panNo': 'pan_no',
+                'fatherName': 'father_name',
+                'wardNo': 'ward_no',
+                'counsellingDate': 'counselling_date',
+                'counselledByName': 'counselled_by_name',
+            }
+            for camel, snake in camel_map.items():
+                if camel in data and (snake not in data or data[snake] is None or data[snake] == ''):
+                    data[snake] = data[camel]
+
+            nullable_fields = [
+                'family_income', 'personal_income', 'date_of_entry', 'email',
+                'aadhar_no', 'pan_no', 'landmark', 'dob', 'counselling_date',
+                'father_name', 'ward_no', 'pin', 'slot', 'domain', 'education'
+            ]
+            for field in nullable_fields:
+                if field in data and (data[field] == '' or data[field] == 'null'):
                     data[field] = None
         return super().to_internal_value(data)
