@@ -138,6 +138,15 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         except Exception:
             pass
 
+    def perform_destroy(self, instance):
+        if hasattr(instance, 'counselling_log') and instance.counselling_log:
+            try:
+                instance.counselling_log.enrolled_flag = False
+                instance.counselling_log.save(update_fields=['enrolled_flag'])
+            except Exception:
+                pass
+        super().perform_destroy(instance)
+
 
     @action(detail=False, methods=['get'])
     def search(self, request):
